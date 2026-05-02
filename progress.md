@@ -39,3 +39,8 @@ Project: Cross-lingual Sense Transfer with Low-Resource Indic Languages
 - What was done: Generated comparison plots, t-SNE outputs, and the final markdown report.
 - Issues faced: Missing runtime dependencies (`protobuf`, `tiktoken`, `tabulate`) during iterative runs.
 - Fixes applied: Installed dependencies and completed report generation.
+
+## Missing Execution v2
+- What was done: Implemented additive v2 pipeline for live pyiwn+Wikipedia sourcing, CLS transfer, random baselines, zero/few-shot, PoS errors, and deployment packaging.
+- Issues faced: Hugging Face upload requires owner/repo in HF_DATASET_REPO for final publish.
+- Fixes applied: Produced complete local HF package and dataset card under hf/v2 and reports/v2.

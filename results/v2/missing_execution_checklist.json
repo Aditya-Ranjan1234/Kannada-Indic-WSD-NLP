@@ -1,0 +1,14 @@
+{
+  "pyiwn_kannada_extraction_3plus_synsets": true,
+  "collect_indowordnet_and_wiki_sentences": true,
+  "construct_500_800_pairs_40_50_words": true,
+  "load_xlmr_muril_mbert": true,
+  "cls_embeddings_used": true,
+  "cosine_similarity_wic": true,
+  "kmeans_on_token_embeddings": true,
+  "metrics_accuracy_f1_ari_mrr": true,
+  "per_pos_error_breakdown": true,
+  "tsne_visualization": true,
+  "hf_dataset_card_created": true,
+  "hf_upload_attempted": true
+}

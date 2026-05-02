@@ -1,0 +1,5 @@
+setting,shots_per_class,accuracy,macro_f1
+zero_shot_fixed_threshold,0,0.4895833333333333,0.32867132867132864
+few_shot_logreg,8,0.4791666666666667,0.4678492239467849
+few_shot_logreg,16,0.5208333333333334,0.52
+few_shot_logreg,32,0.53125,0.530791788856305
