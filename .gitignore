@@ -1,0 +1,31 @@
+# Virtual environment
+venv/
+env/
+*.venv/
+*.env/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Output files
+*.npz
+*.png
+*.csv
+outputs/
+results/
+
+# Models (we don't commit these)
+models/
+
+# Other
+.DS_Store
+Thumbs.db

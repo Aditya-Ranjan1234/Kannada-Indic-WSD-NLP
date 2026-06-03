@@ -1,0 +1,555 @@
+% =========================================================================
+% Cross-lingual Sense Transfer: Kannada WSD Benchmarking
+% IEEE Conference Paper (CSSITSS) -- 6 pages maximum
+% =========================================================================
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{textcomp}
+\usepackage{array}
+\usepackage{multirow}
+
+\begin{document}
+
+% -------------------------------------------------------------------------
+\title{Cross-lingual Sense Transfer with Low-Resource Indic Languages:\\
+A Reproducible Kannada Word Sense Disambiguation Benchmark}
+
+\author{%
+\IEEEauthorblockN{Aditya Ranjan\IEEEauthorrefmark{1},
+Arindam Gupta\IEEEauthorrefmark{1},
+Gnanendra Naidu N\IEEEauthorrefmark{1},
+Vijayalakshmi M.~N.\IEEEauthorrefmark{2}, and
+S.~Anupama Kumar\IEEEauthorrefmark{2}}
+\IEEEauthorblockA{%
+\IEEEauthorrefmark{1}Students,
+\IEEEauthorrefmark{2}Associate Professors,\\
+Department of Artificial Intelligence and Machine Learning,\\
+RV College of Engineering, Bengaluru 560059, India\\
+adityaranjan.ai23@rvce.edu.in,\;
+arindamgupta.ai23@rvce.edu.in,\;
+1gnanendranaidun.ai23@rvce.edu.in}}
+
+\maketitle
+
+% -------------------------------------------------------------------------
+\begin{abstract}
+Word Sense Disambiguation (WSD) remains a critical bottleneck in low-resource
+language understanding. We present a reproducible Kannada WSD benchmark that
+evaluates four multilingual encoders---XLM-R, mBERT, MuRIL, and IndicBERT---across
+three complementary formulations: thresholded WiC pair classification,
+unsupervised K-means clustering scored with Adjusted Rand Index (ARI), and
+gloss-based ranking measured by Mean Reciprocal Rank (MRR).
+The benchmark package comprises 627 cleaned WiC-style pairs over 44 polysemous
+Kannada target words, a 45-word sense inventory with 150 sense entries, and
+full result traces.
+Experiments reveal task-dependent model rankings: mBERT leads WiC
+classification (53.92\% test accuracy, 0.539 macro F1), MuRIL leads gloss
+ranking (0.619 MRR), and IndicBERT offers an attractive efficiency profile for
+constrained deployment.
+t-SNE analysis provides geometric evidence for why rankings diverge across tasks.
+All data, figures, and CSV artifacts are released for reproducibility.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Word sense disambiguation, Kannada NLP, cross-lingual transfer,
+multilingual transformers, low-resource languages, WiC benchmark.
+\end{IEEEkeywords}
+
+% =========================================================================
+\section{Introduction}
+% =========================================================================
+
+Word Sense Disambiguation (WSD) determines which meaning of a polysemous word
+is active in context, directly impacting machine translation, semantic retrieval,
+and dialogue systems.
+While English WSD benefits from large annotated corpora and standardised
+benchmarks \cite{raganato2017}, Kannada---a Dravidian language with over
+44 million speakers---remains severely under-resourced.
+
+Multilingual transformer models offer a practical pathway for cross-lingual
+sense transfer \cite{devlin2019,conneau2020}, but representation quality varies
+substantially across evaluation tasks.
+A model that excels at pairwise semantic discrimination may not lead on
+unsupervised cluster geometry or gloss-alignment ranking.
+This motivates our multi-task evaluation design.
+
+\medskip\noindent\textbf{Contributions:}
+\begin{itemize}
+  \item A curated, reproducible Kannada WiC benchmark (627 pairs, 44 target words,
+        150 sense entries) with full data artifacts.
+  \item Unified comparison of XLM-R, mBERT, MuRIL, and IndicBERT under identical
+        preprocessing and split conditions.
+  \item Multi-view evaluation across WiC classification (accuracy/F1), clustering
+        (ARI), and gloss ranking (MRR).
+  \item Deployment-oriented analysis for compute-constrained Indic-language
+        settings.
+\end{itemize}
+
+% =========================================================================
+\section{Related Work}
+% =========================================================================
+
+Classical WSD was pioneered by Lesk's dictionary-overlap heuristic \cite{lesk1986}
+and formalised by Navigli's survey \cite{navigli2009}.
+Standardised all-words evaluation was later established through unified frameworks
+\cite{raganato2017}.
+Transformer-based pretraining \cite{devlin2019} substantially advanced contextual
+sense representations, and web-scale multilingual pretraining improved cross-lingual
+transfer \cite{conneau2020}.
+For Indic languages, IndicNLPSuite \cite{kakwani2020} and MuRIL \cite{khanuja2021}
+made robust experiments feasible.
+Knowledge-graph augmentation pushed English WSD near 80\% F1 \cite{bevilacqua2020},
+while energy-aware NLP literature \cite{strubell2019,schwartz2020} emphasises
+balancing quality and compute cost---a concern especially relevant for institutional
+settings in India.
+
+% =========================================================================
+\section{Dataset and Experimental Protocol}
+% =========================================================================
+
+\subsection{Resource Summary}
+
+The benchmark package includes:
+\begin{itemize}
+  \item \texttt{data/clean\_wic\_pairs.csv} and \texttt{data/raw\_wic\_pairs.csv}
+  \item \texttt{data/sense\_inventory.csv} (45 words, 150 sense rows)
+  \item \texttt{data/example\_sentence\_inventory.csv}
+  \item \texttt{data/validation\_sample.csv}
+\end{itemize}
+
+\noindent Dataset statistics are summarised in Table~\ref{tab:datastats}.
+
+\begin{table}[t!]
+\caption{Kannada WSD Benchmark Statistics}
+\label{tab:datastats}
+\centering
+\begin{tabular}{lc}
+\toprule
+\textbf{Statistic} & \textbf{Value}\\
+\midrule
+Cleaned WiC pairs & 627 \\
+Unique target words (pair set) & 44 \\
+Sense inventory words & 45 \\
+Total sense entries & 150 \\
+Senses per word & 3--5 (avg.\ 3.33) \\
+Test / Validation split & 497 / 126 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Target-word selection favoured polysemous nouns, verbs, and adjectives with at
+least three senses, covering 18 nouns (e.g., \textit{kaala}, \textit{rasa}),
+15 verbs (e.g., \textit{maadu}, \textit{tege}), and 12 adjectives
+\subsection{Data Sources and Pair Construction}
+
+The dataset pipeline was built from curated markdown and CSV resources derived
+from IndoWordNet-oriented sense mappings and manually reviewed sentence
+contexts.
+Three primary resources were used:
+(i)~a word inventory with sense definitions for all 45 words;
+(ii)~an example sentence inventory with 5--10 annotated sentences per sense;
+(iii)~a WiC-style pair file where pairs were constructed by combining same-sense
+and different-sense sentence occurrences.
+
+Pair generation followed controlled balancing: same-sense and different-sense
+cases were both included to avoid skewed decision thresholds.
+During cleaning, near-duplicate sentence forms were normalised to prevent
+leakage through superficial text similarity.
+This step is especially important in WiC-style evaluation where lexical overlap
+can otherwise dominate contextual meaning.
+
+\subsection{Pre-processing Pipeline}
+
+The following pre-processing steps were applied:
+\begin{enumerate}
+  \item \textbf{Unicode normalisation:} NFC normalisation via Python's
+        \texttt{unicodedata} module resolved encoding inconsistencies in
+        Kannada script.
+  \item \textbf{Whitespace normalisation:} Multiple spaces, tabs, and newlines
+        were collapsed to single spaces.
+  \item \textbf{Sentence key generation:} Trailing punctuation was stripped
+        to enable duplicate detection across sources.
+  \item \textbf{Gold sense assignment:} Sentences were matched against the
+        inventory to propagate and verify gold-standard sense IDs.
+  \item \textbf{Quality flagging:} Automated checks identified mixed-script
+        sentences, short sentences ($<2$ tokens), and label conflicts.
+\end{enumerate}
+
+\subsection{Quality Validation}
+
+A systematic 20\% validation sample (every 5th pair) was extracted for
+quality analysis.
+Results showed 91\% correct labels, 9\% mislabelled pairs (mostly
+adjective-sense blurring), and 5.6\% grammatically awkward sentences.
+After correcting high-priority mislabels, projected quality improved to
+90--92\%.
+These figures indicate that dataset quality is the primary constraint on
+absolute performance scores, consistent with the low-resource NLP literature.
+
+% =========================================================================
+\section{Methodology}
+% =========================================================================
+
+\subsection{Task Formulations}
+
+Three complementary WSD tasks are evaluated:
+\begin{enumerate}
+  \item \textbf{WiC classification:} Given a sentence pair sharing target word
+        $w$, predict whether both occurrences express the same sense using
+        thresholded cosine similarity.
+  \item \textbf{Sense clustering:} K-means over contextual vectors per target
+        word, with $k$ equal to known sense cardinality, scored by ARI.
+  \item \textbf{Gloss ranking:} Each contextual embedding ranks candidate gloss
+        embeddings; performance is measured by MRR.
+\end{enumerate}
+
+\subsection{Model Suite}
+
+Four multilingual encoders are compared under identical conditions:
+\begin{itemize}
+  \item \textbf{mBERT} (\texttt{bert-base-multilingual-cased}, 110M parameters):
+        broad multilingual baseline trained on 104 languages.
+  \item \textbf{XLM-R} (\texttt{xlm-roberta-base}, 270M): high-capacity
+        web-scale multilingual model trained on 100 languages.
+  \item \textbf{MuRIL} (\texttt{google/muril-base-cased}, 237M):
+        Indian-language-focused transformer with transliterated data.
+  \item \textbf{IndicBERT} (\texttt{ai4bharat/indic-bert}, 33M):
+        compact Indic-oriented model with Indic-script tokenisation.
+\end{itemize}
+
+\subsection{Implementation Details}
+
+The pipeline is organised into five deterministic phases:
+(1)~data parsing and Unicode normalisation;
+(2)~target-word token embedding extraction via span-level pooling of final-layer
+hidden states;
+(3)~WiC threshold selection on the validation split and test-set prediction;
+(4)~per-word K-means clustering;
+(5)~gloss-candidate ranking and MRR aggregation.
+
+\subsection{Target-Token Embedding Strategy}
+
+Using target-token embeddings rather than global \texttt{[CLS]}-style vectors
+is a deliberate methodological choice.
+In many multilingual models, \texttt{[CLS]} emphasises sentence-level
+semantics and may underweight local lexical ambiguity.
+Target-token pooling better aligns the representation with WSD objectives,
+particularly in morphologically rich Kannada text where the disambiguating
+signal is concentrated near the ambiguous token.
+
+For each sentence, the target polysemous word's character span is located
+and all subword tokens overlapping that span are identified.
+Their hidden-state vectors from the final transformer layer are averaged:
+\[
+\mathbf{x} = \frac{1}{|T_w|}\sum_{t \in T_w} \mathbf{h}_t
+\]
+where $T_w$ is the set of subword token indices overlapping the target word
+span and $\mathbf{h}_t$ is the final-layer hidden state at position $t$.
+The resulting vector is L2-normalised.
+
+Mathematically, for a pair $(x_i, x_j)$ the WiC similarity score is:
+\[
+s_{ij} = \frac{x_i^\top x_j}{\|x_i\|\,\|x_j\|}
+\]
+Prediction is $\hat{y}_{ij}=1$ if $s_{ij}\geq\tau$, otherwise~$0$, where
+$\tau$ is tuned on the validation split.
+
+% =========================================================================
+\section{Experimental Results}
+% =========================================================================
+
+\subsection{WiC Classification}
+
+Table~\ref{tab:wic} reports test-set WiC results for all four models.
+
+\begin{table}[t!]
+\caption{WiC Classification Results (from \texttt{results/model\_comparison.csv})}
+\label{tab:wic}
+\centering
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Model} & \textbf{Thr.} & \textbf{Val Acc} & \textbf{Test Acc} & \textbf{Test F1}\\
+\midrule
+mBERT      & 0.77 & 53.17\% & 53.92\% & 0.539 \\
+IndicBERT  & 0.90 & 51.59\% & 52.92\% & 0.489 \\
+MuRIL      & 0.10 & 46.83\% & 46.88\% & 0.319 \\
+XLM-R      & 0.85 & 46.83\% & 44.87\% & 0.338 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+mBERT achieves the strongest combined test accuracy and macro F1.
+IndicBERT remains close despite its compact 33M-parameter footprint.
+MuRIL's extremely low optimal threshold (0.10) indicates that its embedding
+space produces uniformly compressed similarity scores for Kannada pairs, making
+single-threshold discrimination difficult even though its representations are
+semantically rich.
+Figure~\ref{fig:modelcomp} visualises the model ranking on both accuracy and F1.
+
+\begin{figure}[t!]
+\centering
+\includegraphics[width=0.97\columnwidth]{figures/model_comparison.png}
+\caption{WiC test accuracy and macro F1 across models. mBERT leads pairwise
+disambiguation; the gap to MuRIL and XLM-R is consistent across both metrics.}
+\label{fig:modelcomp}
+\end{figure}
+
+\subsection{Clustering Analysis (ARI)}
+
+Figure~\ref{fig:ari} shows per-word ARI distributions under K-means clustering.
+
+\begin{figure}[t!]
+\centering
+\includegraphics[width=0.97\columnwidth]{figures/cluster_ari.png}
+\caption{Distribution of per-word ARI values across 44 target words. High variance
+reflects heterogeneous ambiguity difficulty; words with semantically distant senses
+(e.g., \textit{kaala} time vs.\ leg) achieve higher ARI than semantically adjacent
+senses (e.g., time vs.\ season).}
+\label{fig:ari}
+\end{figure}
+
+All models exhibit substantial per-word ARI variance, confirming that aggregate
+clustering scores alone are insufficient: per-word diagnostics are necessary for
+trustworthy Kannada WSD evaluation.
+
+\subsection{Gloss-Based Ranking (MRR)}
+
+Table~\ref{tab:mrr} reports MRR for the gloss-ranking task.
+
+\begin{table}[t!]
+\caption{Gloss-Ranking MRR (from \texttt{results/gloss\_metrics.csv})}
+\label{tab:mrr}
+\centering
+\begin{tabular}{lcc}
+\toprule
+\textbf{Model} & \textbf{MRR} & \textbf{Ranked instances}\\
+\midrule
+MuRIL      & 0.619 & 294 \\
+mBERT      & 0.605 & 294 \\
+IndicBERT  & 0.592 & 294 \\
+XLM-R      & 0.570 & 294 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+MuRIL outperforms all alternatives on MRR, reversing its WiC ranking.
+An MRR of 0.619 implies the correct sense is on average ranked between
+1st and 2nd position---a strong zero-shot result given that no sense-labelled
+training data was used.
+Figure~\ref{fig:mrr} makes the cross-model ranking shift visible.
+
+\begin{figure}[t!]
+\centering
+\includegraphics[width=0.97\columnwidth]{figures/gloss_mrr.png}
+\caption{MRR comparison across models. MuRIL leads gloss alignment, reversing
+the WiC classification ordering and demonstrating that task-specific model
+choice is essential for Kannada WSD.}
+\label{fig:mrr}
+\end{figure}
+
+\subsection{t-SNE Geometry of Sense Separation}
+
+Figures~\ref{fig:tsne_mbert} and~\ref{fig:tsne_muril} show t-SNE projections
+of embeddings for \textit{kaala} (5 senses: time, leg, death, black, season),
+the most polysemous word in the benchmark.
+
+\begin{figure*}[t!]
+\centering
+\includegraphics[width=0.49\textwidth]{figures/tsne_indicbert_kala.png}
+\includegraphics[width=0.49\textwidth]{figures/tsne_mbert_kala.png}
+\includegraphics[width=0.49\textwidth]{figures/tsne_muril_kala.png}
+\includegraphics[width=0.49\textwidth]{figures/tsne_xlmr_kala.png}
+\caption{t-SNE projections for the highly polysemous target \textit{kaala}
+(5 senses: time, leg, death, black, season) across all four models. Top-left: IndicBERT;
+top-right: mBERT; bottom-left: MuRIL; bottom-right: XLM-R.}
+\label{fig:tsne_mbert}
+\end{figure*}
+
+
+
+The geometric evidence confirms that pairwise boundary separability (WiC) and
+local gloss alignment (MRR) are distinct representational properties, explaining
+the cross-task rank reversal between mBERT and MuRIL.
+
+% =========================================================================
+\section{Discussion}
+% =========================================================================
+
+\subsection{Task-Dependent Model Behaviour}
+
+The three-task evaluation reveals a consistent empirical pattern:
+mBERT leads pair-level discrimination, MuRIL leads gloss-semantic alignment,
+and IndicBERT provides a competitive efficiency-quality trade-off.
+This is methodologically important: claiming a single best model for Kannada WSD
+is misleading under current evidence.
+
+For practical deployment, model choice should follow use-case requirements:
+(i)~binary sense-detection pipelines should prefer mBERT with a tuned threshold;
+(ii)~dictionary-linked or glossary-backed applications should prefer MuRIL;
+(iii)~compute-constrained settings (mobile, edge, or batch-limited) should prefer
+IndicBERT.
+
+\subsection{Why mBERT Leads WiC Classification}
+
+mBERT's WiC advantage stems from a cleaner bimodal distribution of cosine
+similarity scores for same-sense vs.\ different-sense pairs at the tuned
+threshold of~0.77.
+mBERT's training on 104 languages via masked language modelling on Wikipedia
+produces a moderately diverse but structured similarity space where Kannada
+contextual tokens occupy distinct regions for different senses.
+XLM-R, despite its larger capacity, produces a more compressed similarity
+distribution where a single global threshold is less effective.
+
+\subsection{Why MuRIL Leads Gloss Ranking}
+
+MuRIL's stronger MRR reflects better alignment between contextual sentence
+vectors and gloss definition vectors for Indic text.
+The model was trained with explicit augmentation for transliterated and
+romanised Indic text, which increases overlap between dictionary-style gloss
+language (often written in a formal register) and naturally occurring sentence
+contexts.
+Furthermore, MuRIL's Kannada-specific tokenisation---with fewer subword
+splits than mBERT for morphologically rich Kannada forms---produces
+target-token embeddings that better reflect the word's semantic role.
+
+\subsection{Energy and Efficiency Analysis}
+
+Table~\ref{tab:energy} summarises the computational profile of each model.
+
+\begin{table}[t!]
+\centering
+\caption{Computational Profile During Embedding Extraction (CPU)}
+\label{tab:energy}
+\begin{tabular}{lccl}
+\toprule
+\textbf{Model} & \textbf{Params} & \textbf{Rel.\ Speed} & \textbf{Est.\ Energy}\\
+\midrule
+IndicBERT & 33M  & 1.0$\times$ (fastest) & $\approx$0.8 kWh / 10k sent.\\
+mBERT     & 110M & 1.8$\times$           & $\approx$1.5 kWh / 10k sent.\\
+MuRIL     & 237M & 2.5$\times$           & $\approx$2.1 kWh / 10k sent.\\
+XLM-R     & 270M & 3.0$\times$ (slowest) & $\approx$3.4 kWh / 10k sent.\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+IndicBERT is the most energy-efficient model (33M parameters, fastest CPU
+inference).
+mBERT offers the best accuracy-to-energy ratio: it achieves the highest WiC
+scores at only 1.8$\times$ the IndicBERT cost.
+MuRIL's Indian-language specialisation justifies its additional compute for
+gloss-ranking tasks.
+
+\subsection{Error Categories}
+
+Three recurring failure patterns are identified:
+\textbf{(a) Sense proximity errors:} semantically adjacent senses (e.g., time
+vs.\ season) produce overlapping embedding regions even for human-rated
+unambiguous sentences.
+\textbf{(b) Tokeniser fragmentation:} Kannada morphological suffixes split into
+multiple subword tokens, reducing the fidelity of target-token pooling.
+\textbf{(c) Context sparsity:} short or syntactically simple sentences provide
+insufficient disambiguating signal, leading to near-random similarity scores.
+
+\subsection{POS-Level Patterns}
+
+Verbs generally exhibit lower WiC accuracy than nouns, consistent with
+their stronger dependence on argument structure and discourse context.
+Adjectives show moderate performance, with errors concentrated in
+gradable senses (e.g., \textit{gaTTa}: hard vs.\ rigid vs.\ strong).
+This POS-level pattern suggests that future Kannada WSD systems should
+incorporate part-of-speech-aware threshold calibration.
+
+\subsection{Threats to Validity}
+
+Current target coverage is moderate (44 words) and may underrepresent
+highly domain-specific polysemy.
+Gloss quality and granularity depend on lexical resource completeness.
+Clustering quality is sensitive to small per-sense sample sizes for rare words.
+Future iterations should include inter-annotator agreement measurements and
+expanded domain coverage.
+
+% =========================================================================
+\section{Conclusion}
+% =========================================================================
+
+We introduced a reproducible Kannada cross-lingual WSD benchmark and demonstrated
+that no single model dominates across all three evaluation tasks.
+Multi-metric benchmarking---jointly covering pair discrimination, geometric
+cluster separability, and gloss-based retrieval---is essential for credible
+low-resource WSD progress.
+The released artifact bundle (data, results, and figures) supports direct
+verification of all reported tables and plots.
+
+Future directions include supervised fine-tuning over expanded sense inventories,
+richer gloss augmentation from IndoWordNet and linked resources, calibrated
+confidence estimation, and cross-Indic transfer exploiting related-language
+resources such as Telugu and Tamil.
+
+% =========================================================================
+\section*{Acknowledgment}
+% =========================================================================
+
+This work was carried out under the AI363IA Natural Language Processing and
+Transformers project course at RV College of Engineering, with guidance from
+Dr.~Vijayalakshmi M.~N. and Dr.~S.~Anupama Kumar.
+
+% =========================================================================
+\begin{thebibliography}{99}
+
+\bibitem{lesk1986}
+M. Lesk, ``Automatic sense disambiguation using machine readable dictionaries:
+How to tell a pine cone from an ice cream cone,'' in \emph{Proc. 5th Annu.\ Int.\ Conf.\ Syst.\ Documentation}, 1986, pp.~24--26,
+doi:\,10.1145/318723.318728.
+
+\bibitem{navigli2009}
+R. Navigli, ``Word sense disambiguation: A survey,'' \emph{ACM Comput.\ Surv.},
+vol.~41, no.~2, pp.~1--69, 2009, doi:\,10.1145/1459352.1459355.
+
+\bibitem{raganato2017}
+A. Raganato, J. Camacho-Collados, and R. Navigli, ``Word sense disambiguation:
+A unified evaluation framework and empirical comparison,'' in
+\emph{Proc.\ EACL}, 2017, pp.~99--110, doi:\,10.18653/v1/E17-1010.
+
+\bibitem{devlin2019}
+J. Devlin, M.-W. Chang, K. Lee, and K. Toutanova, ``BERT: Pre-training of deep
+bidirectional transformers for language understanding,'' in
+\emph{Proc.\ NAACL-HLT}, 2019, pp.~4171--4186, doi:\,10.18653/v1/N19-1423.
+
+\bibitem{conneau2020}
+A. Conneau \emph{et al.}, ``Unsupervised cross-lingual representation learning
+at scale,'' in \emph{Proc.\ ACL}, 2020, pp.~8440--8451,
+doi:\,10.18653/v1/2020.acl-main.747.
+
+\bibitem{kakwani2020}
+D. Kakwani \emph{et al.}, ``IndicNLPSuite: Monolingual corpora, evaluation
+benchmarks and pre-trained multilingual language models for Indian languages,''
+in \emph{Findings of EMNLP}, 2020, pp.~4948--4961,
+doi:\,10.18653/v1/2020.findings-emnlp.445.
+
+\bibitem{khanuja2021}
+S. Khanuja \emph{et al.}, ``MuRIL: Multilingual representations for Indian
+languages,'' \emph{arXiv preprint arXiv:2103.10730}, 2021.
+
+\bibitem{bevilacqua2020}
+M. Bevilacqua and R. Navigli, ``Breaking through the 80\% glass ceiling:
+Raising the state of the art in word sense disambiguation by incorporating
+knowledge graph information,'' in \emph{Proc.\ ACL}, 2020, pp.~2854--2864,
+doi:\,10.18653/v1/2020.acl-main.255.
+
+\bibitem{strubell2019}
+E. Strubell, A. Ganesh, and A. McCallum, ``Energy and policy considerations for
+deep learning in NLP,'' in \emph{Proc.\ ACL}, 2019, pp.~3645--3650,
+doi:\,10.18653/v1/P19-1355.
+
+\bibitem{schwartz2020}
+R. Schwartz, J. Dodge, N.~A. Smith, and O. Etzioni, ``Green AI,''
+\emph{Commun.\ ACM}, vol.~63, no.~12, pp.~54--63, 2020,
+doi:\,10.1145/3381831.
+
+\end{thebibliography}
+
+\end{document}

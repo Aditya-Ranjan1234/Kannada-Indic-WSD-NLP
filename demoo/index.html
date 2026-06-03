@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kannada-Indic WSD Dashboard</title>
+    <meta name="description" content="Cross-lingual Gloss Projection dashboard for Kannada Word Sense Disambiguation using multilingual embeddings.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Kannada:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #060d1f;
+            --bg2: #0c1529;
+            --surface: rgba(255,255,255,0.04);
+            --surface-hover: rgba(255,255,255,0.08);
+            --border: rgba(255,255,255,0.08);
+            --blue: #6366f1;
+            --blue-light: #818cf8;
+            --violet: #8b5cf6;
+            --green: #10b981;
+            --red: #f43f5e;
+            --amber: #f59e0b;
+            --text: #f1f5f9;
+            --text-sub: #94a3b8;
+            --text-dim: #475569;
+            --sidebar-w: 220px;
+            --right-w: 380px;
+            --header-h: 56px;
+            --radius: 12px;
+            --radius-sm: 8px;
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { font-size: 14px; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 3px; }
+
+        /* ─── Header ─────────────────────────────────────── */
+        .header {
+            height: var(--header-h);
+            background: rgba(6,13,31,0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 1.5rem;
+            gap: 1rem;
+            flex-shrink: 0;
+            z-index: 10;
+        }
+        .logo {
+            display: flex; align-items: center; gap: 0.6rem;
+            font-weight: 700; font-size: 1rem; letter-spacing: -0.02em;
+        }
+        .logo-icon {
+            width: 28px; height: 28px;
+            background: linear-gradient(135deg, var(--blue), var(--violet));
+            border-radius: 7px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.8rem;
+        }
+        .logo-sub { color: var(--text-sub); font-weight: 400; font-size: 0.8rem; margin-left: 4px; }
+
+        /* Workflow steps in header */
+        .workflow { margin-left: auto; display: flex; align-items: center; gap: 0; }
+        .wf-step {
+            display: flex; align-items: center; gap: 0.4rem;
+            padding: 0.35rem 0.8rem; font-size: 0.75rem; font-weight: 500;
+            color: var(--text-dim); transition: color 0.2s;
+        }
+        .wf-step.active { color: var(--blue-light); }
+        .wf-step.done { color: var(--green); }
+        .wf-num {
+            width: 20px; height: 20px; border-radius: 50%;
+            background: rgba(255,255,255,0.06); border: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.65rem; transition: all 0.2s;
+        }
+        .wf-step.active .wf-num { background: rgba(99,102,241,0.2); border-color: var(--blue); color: var(--blue-light); }
+        .wf-step.done .wf-num { background: rgba(16,185,129,0.2); border-color: var(--green); color: var(--green); }
+        .wf-arrow { color: var(--text-dim); font-size: 0.65rem; padding: 0 0.1rem; }
+
+        /* ─── Layout ─────────────────────────────────────── */
+        .layout {
+            flex: 1; display: grid;
+            grid-template-columns: var(--sidebar-w) 1fr var(--right-w);
+            overflow: hidden;
+        }
+
+        /* ─── Sidebar ────────────────────────────────────── */
+        .sidebar {
+            background: var(--bg2); border-right: 1px solid var(--border);
+            display: flex; flex-direction: column; overflow: hidden;
+        }
+        .sidebar-head {
+            padding: 1rem; border-bottom: 1px solid var(--border); flex-shrink: 0;
+        }
+        .sidebar-head h3 { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-sub); }
+        .search-box { margin-top: 0.6rem; position: relative; }
+        .search-box input {
+            width: 100%; padding: 0.4rem 0.6rem 0.4rem 1.8rem;
+            background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+            border-radius: var(--radius-sm); color: var(--text);
+            font-size: 0.8rem; font-family: inherit; outline: none; transition: border 0.2s;
+        }
+        .search-box input:focus { border-color: var(--blue); }
+        .search-box svg { position: absolute; left: 0.5rem; top: 50%; transform: translateY(-50%); color: var(--text-dim); }
+        .word-list { flex: 1; overflow-y: auto; padding: 0.5rem; list-style: none; }
+        .word-item {
+            padding: 0.55rem 0.75rem; border-radius: var(--radius-sm); cursor: pointer;
+            font-family: 'Noto Sans Kannada', sans-serif; font-size: 0.95rem;
+            color: var(--text-sub); transition: all 0.15s;
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+        .word-item:hover { background: var(--surface-hover); color: var(--text); }
+        .word-item.active {
+            background: rgba(99,102,241,0.15); color: var(--blue-light); font-weight: 600;
+        }
+        .word-item.active::before {
+            content: ''; display: block; width: 3px; height: 16px;
+            background: var(--blue); border-radius: 2px;
+        }
+        .word-count { margin-left: auto; font-size: 0.65rem; color: var(--text-dim); }
+
+        /* ─── Main Panel ─────────────────────────────────── */
+        .main {
+            overflow-y: auto; padding: 1.5rem;
+            display: flex; flex-direction: column; gap: 1.5rem;
+        }
+        .welcome {
+            flex: 1; display: flex; align-items: center; justify-content: center;
+            flex-direction: column; gap: 1rem; text-align: center;
+            color: var(--text-sub); animation: fadeUp 0.6s ease;
+        }
+        .welcome-icon {
+            width: 72px; height: 72px; background: rgba(99,102,241,0.1);
+            border: 1px solid rgba(99,102,241,0.2); border-radius: 20px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2rem; margin-bottom: 0.5rem;
+        }
+        .welcome h2 { font-size: 1.3rem; color: var(--text); font-weight: 600; }
+        .welcome p { max-width: 380px; line-height: 1.6; font-size: 0.88rem; }
+
+        .word-header { display: flex; align-items: center; gap: 1rem; animation: fadeUp 0.3s ease; }
+        .word-big {
+            font-family: 'Noto Sans Kannada', sans-serif; font-size: 2.4rem; font-weight: 700;
+            background: linear-gradient(to right, var(--blue-light), var(--violet));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1;
+        }
+        .word-meta { display: flex; flex-direction: column; gap: 0.2rem; }
+        .word-meta-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-dim); }
+        .word-meta-val { font-size: 0.8rem; color: var(--text-sub); }
+
+        .section-label { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-sub); margin-bottom: 0.6rem; }
+        .senses-grid { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+        .sense-chip {
+            padding: 0.35rem 0.75rem; background: rgba(139,92,246,0.12);
+            border: 1px solid rgba(139,92,246,0.25); border-radius: 999px;
+            font-size: 0.8rem; color: #c4b5fd; transition: all 0.15s;
+        }
+        .sense-chip:hover { background: rgba(139,92,246,0.22); }
+
+        .pairs-grid { display: flex; flex-direction: column; gap: 0.6rem; }
+        .pair-card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 0.9rem 1rem;
+            cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden;
+        }
+        .pair-card::before {
+            content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+            width: 3px; background: var(--blue); border-radius: 0 2px 2px 0;
+        }
+        .pair-card.diff-sense::before { background: var(--red); }
+        .pair-card:hover { background: var(--surface-hover); border-color: rgba(99,102,241,0.3); transform: translateX(2px); }
+        .pair-card.selected { border-color: var(--blue); background: rgba(99,102,241,0.08); }
+        .pair-badge {
+            display: inline-flex; align-items: center; gap: 0.3rem;
+            font-size: 0.65rem; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.06em; padding: 0.2rem 0.5rem; border-radius: 4px; margin-bottom: 0.5rem;
+        }
+        .pair-badge.same { background: rgba(99,102,241,0.15); color: var(--blue-light); }
+        .pair-badge.diff { background: rgba(244,63,94,0.15); color: #fb7185; }
+        .pair-sent {
+            font-size: 0.82rem; color: var(--text-sub); line-height: 1.5;
+            font-family: 'Noto Sans Kannada', 'Inter', sans-serif;
+        }
+        .pair-sent strong { color: var(--text-dim); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; margin-right: 0.3rem; font-family: 'Inter'; }
+        .pair-sent .hl { color: var(--blue-light); font-weight: 600; }
+
+        .card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 1.2rem; animation: fadeUp 0.4s ease;
+        }
+        .empty-pairs { padding: 2rem; text-align: center; color: var(--text-dim); font-size: 0.82rem; }
+
+        /* ─── Right Panel ────────────────────────────────── */
+        .right-panel {
+            background: var(--bg2); border-left: 1px solid var(--border);
+            display: flex; flex-direction: column; overflow: hidden;
+        }
+        .rp-head { padding: 1rem 1.2rem; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+        .rp-head h3 { font-size: 0.85rem; font-weight: 600; }
+        .rp-head p { font-size: 0.75rem; color: var(--text-sub); margin-top: 0.2rem; }
+        .rp-body { flex: 1; overflow-y: auto; padding: 1rem 1.2rem; display: flex; flex-direction: column; gap: 1rem; }
+        .rp-label { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-sub); margin-bottom: 0.4rem; }
+        .rp-select {
+            width: 100%; padding: 0.55rem 0.75rem;
+            background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+            border-radius: var(--radius-sm); color: var(--text);
+            font-family: 'Inter', sans-serif; font-size: 0.82rem; outline: none;
+            cursor: pointer; transition: border 0.2s; appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+            background-repeat: no-repeat; background-position: right 0.6rem center; background-size: 16px; padding-right: 2rem;
+        }
+        .rp-select:focus { border-color: var(--blue); }
+        option { background: #1e293b; }
+
+        .sent-box {
+            background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+            border-radius: var(--radius-sm); padding: 0.7rem 0.8rem;
+            min-height: 48px; font-size: 0.82rem; line-height: 1.6;
+            color: var(--text-sub); font-family: 'Noto Sans Kannada', 'Inter', sans-serif;
+        }
+        .sent-box .hl { color: var(--blue-light); font-weight: 600; }
+        .sent-box.empty::before { content: 'Click a pair to load'; color: var(--text-dim); font-style: italic; font-family: 'Inter'; font-size: 0.75rem; }
+
+        .calc-btn {
+            width: 100%; padding: 0.65rem;
+            background: linear-gradient(135deg, var(--blue), var(--violet));
+            border: none; border-radius: var(--radius-sm); color: white;
+            font-family: 'Inter', sans-serif; font-size: 0.85rem; font-weight: 600;
+            cursor: pointer; transition: all 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+        }
+        .calc-btn:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(99,102,241,0.4); }
+        .calc-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        /* Result card */
+        .result-card {
+            border-radius: var(--radius); padding: 1.2rem; text-align: center;
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .result-card.high { background: rgba(16,185,129,0.06); border: 1px solid rgba(16,185,129,0.2); }
+        .result-card.low { background: rgba(244,63,94,0.06); border: 1px solid rgba(244,63,94,0.2); }
+        .result-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-sub); margin-bottom: 0.4rem; }
+        .result-score {
+            font-size: 2.8rem; font-weight: 700; line-height: 1;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .result-score.high { background: linear-gradient(to right, var(--green), #34d399); -webkit-background-clip: text; }
+        .result-score.low { background: linear-gradient(to right, var(--red), #fb7185); -webkit-background-clip: text; }
+        .result-bar-wrap { background: rgba(255,255,255,0.06); border-radius: 4px; height: 6px; margin-top: 0.8rem; overflow: hidden; }
+        .result-bar { height: 100%; border-radius: 4px; transition: width 0.8s cubic-bezier(0.4,0,0.2,1); }
+        .result-bar.high { background: linear-gradient(to right, var(--blue), var(--green)); }
+        .result-bar.low { background: linear-gradient(to right, var(--amber), var(--red)); }
+
+        /* WSD Verdict */
+        .verdict-card {
+            border-radius: var(--radius); padding: 1rem 1.2rem;
+            animation: fadeUp 0.3s ease; margin-top: 0.5rem;
+        }
+        .verdict-card.correct { background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.25); }
+        .verdict-card.wrong   { background: rgba(244,63,94,0.08); border: 1px solid rgba(244,63,94,0.25); }
+        .verdict-header {
+            display: flex; align-items: center; gap: 0.5rem;
+            font-size: 0.85rem; font-weight: 700; margin-bottom: 0.5rem;
+        }
+        .verdict-icon { font-size: 1.2rem; }
+        .verdict-card.correct .verdict-header { color: #34d399; }
+        .verdict-card.wrong .verdict-header   { color: #fb7185; }
+        .verdict-detail {
+            font-size: 0.75rem; color: var(--text-sub); line-height: 1.7;
+        }
+        .verdict-detail .vd-label { color: var(--text-dim); font-weight: 600; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.05em; }
+        .verdict-tag {
+            display: inline-block; padding: 0.12rem 0.45rem; border-radius: 4px;
+            font-size: 0.7rem; font-weight: 600;
+        }
+        .verdict-tag.same { background: rgba(99,102,241,0.15); color: var(--blue-light); }
+        .verdict-tag.diff { background: rgba(244,63,94,0.15); color: #fb7185; }
+
+        /* Current status (replaces log) */
+        .current-status {
+            padding: 0.7rem 0.9rem; border-radius: var(--radius-sm);
+            background: rgba(99,102,241,0.06); border: 1px solid rgba(99,102,241,0.15);
+            font-size: 0.78rem; color: var(--text-sub);
+            display: flex; align-items: center; gap: 0.5rem;
+            transition: all 0.3s; animation: fadeUp 0.3s ease;
+        }
+        .status-dot {
+            width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+        }
+        .status-dot.idle { background: var(--text-dim); }
+        .status-dot.active { background: var(--blue); animation: pulse 1.5s infinite; }
+        .status-dot.done { background: var(--green); }
+
+        .rp-divider { border: none; border-top: 1px solid var(--border); }
+        .tag { display: inline-block; font-size: 0.65rem; padding: 0.15rem 0.45rem; border-radius: 4px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+        .tag-blue { background: rgba(99,102,241,0.15); color: var(--blue-light); }
+        .spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; }
+
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes popIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+    </style>
+</head>
+<body>
+
+<!-- ─── Header ───────────────────────────────────────── -->
+<header class="header">
+    <div class="logo">
+        <div class="logo-icon">ಕ</div>
+        <span>Kannada WSD</span>
+        <span class="logo-sub">/ Gloss Projection</span>
+    </div>
+    <nav class="workflow">
+        <div class="wf-step active" id="wfStep1"><div class="wf-num">1</div> Select Word</div>
+        <span class="wf-arrow">›</span>
+        <div class="wf-step" id="wfStep2"><div class="wf-num">2</div> Choose Pair</div>
+        <span class="wf-arrow">›</span>
+        <div class="wf-step" id="wfStep3"><div class="wf-num">3</div> Calculate</div>
+    </nav>
+</header>
+
+<!-- ─── Layout ───────────────────────────────────────── -->
+<div class="layout">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-head">
+            <h3>Kannada Words <span class="word-count" id="wordCount"></span></h3>
+            <div class="search-box">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                <input type="text" id="searchInput" placeholder="Search..." oninput="filterWords()" />
+            </div>
+        </div>
+        <ul class="word-list" id="wordList">
+            <li style="padding:1rem; color:var(--text-dim); font-size:0.8rem; text-align:center;">Loading words…</li>
+        </ul>
+    </aside>
+
+    <!-- Main -->
+    <main class="main" id="mainContent">
+        <div class="welcome" id="welcomeState">
+            <div class="welcome-icon">🔍</div>
+            <h2>Explore Word Senses</h2>
+            <p>Select a Kannada word from the left panel to view its IndoWordNet glosses, dataset sentence pairs, and compute cross-lingual embedding similarity.</p>
+        </div>
+        <div id="wordState" style="display:none;">
+            <div class="word-header">
+                <div class="word-big" id="wordTitle"></div>
+                <div class="word-meta">
+                    <span class="word-meta-label">Target Word</span>
+                    <span class="word-meta-val" id="wordMetaSenses">0 glosses · 0 pairs</span>
+                </div>
+            </div>
+            <div class="card">
+                <div class="section-label">IndoWordNet Glosses</div>
+                <div class="senses-grid" id="sensesList"></div>
+            </div>
+            <div class="card">
+                <div class="section-label" style="margin-bottom:0.8rem;">Dataset Sentence Pairs</div>
+                <div class="pairs-grid" id="pairsList"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Right Panel -->
+    <aside class="right-panel">
+        <div class="rp-head">
+            <h3>Embedding Similarity</h3>
+            <p>Compare target-word token embeddings and evaluate WSD performance.</p>
+        </div>
+        <div class="rp-body">
+
+            <div>
+                <div class="rp-label">Model</div>
+                <select id="modelSelect" class="rp-select"><option value="">Loading models…</option></select>
+            </div>
+
+            <div>
+                <div class="rp-label" style="display:flex;align-items:center;gap:0.4rem;">
+                    Sentence 1 <span class="tag tag-blue" id="tagS1" style="display:none;">S1</span>
+                </div>
+                <div class="sent-box empty" id="calcS1"></div>
+            </div>
+
+            <div>
+                <div class="rp-label" style="display:flex;align-items:center;gap:0.4rem;">
+                    Sentence 2 <span class="tag tag-blue" id="tagS2" style="display:none;">S2</span>
+                </div>
+                <div class="sent-box empty" id="calcS2"></div>
+            </div>
+
+            <button class="calc-btn" id="calcBtn" onclick="calculateSimilarity()" disabled>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
+                Calculate Similarity
+            </button>
+
+            <!-- Result + WSD Verdict -->
+            <div id="resultBox" style="display:none;"></div>
+            <div id="verdictBox" style="display:none;"></div>
+
+            <hr class="rp-divider">
+
+            <!-- Current status (single line, not a growing log) -->
+            <div>
+                <div class="rp-label">Current Status</div>
+                <div class="current-status" id="currentStatus">
+                    <div class="status-dot idle"></div>
+                    <span>Select a word to begin</span>
+                </div>
+            </div>
+        </div>
+    </aside>
+</div>
+
+<script>
+    let currentWord = '', currentS1 = '', currentS2 = '', currentLabel = '';
+    let allWords = [];
+    let selectedPairEl = null;
+
+    /* ─── Workflow steps ─────────────────────────────── */
+    function setStep(n) {
+        [1,2,3].forEach(i => {
+            const el = document.getElementById('wfStep' + i);
+            el.className = 'wf-step' + (i < n ? ' done' : i === n ? ' active' : '');
+            el.querySelector('.wf-num').textContent = i < n ? '✓' : i;
+        });
+    }
+
+    /* ─── Single-line status (replaces log) ──────────── */
+    function setStatus(msg, type = 'active') {
+        const el = document.getElementById('currentStatus');
+        el.innerHTML = `<div class="status-dot ${type}"></div><span>${msg}</span>`;
+    }
+
+    /* ─── Init ───────────────────────────────────────── */
+    async function init() {
+        try {
+            const res = await fetch('/api/models');
+            const { models } = await res.json();
+            const sel = document.getElementById('modelSelect');
+            sel.innerHTML = models.length
+                ? models.map(m => `<option value="${m}">${m}</option>`).join('')
+                : '<option value="">No local models found</option>';
+        } catch {}
+        try {
+            const res = await fetch('/api/words');
+            const { words } = await res.json();
+            allWords = words.sort();
+            document.getElementById('wordCount').textContent = allWords.length;
+            renderWordList(allWords);
+        } catch {
+            document.getElementById('wordList').innerHTML =
+                '<li style="padding:1rem;color:var(--red);font-size:0.8rem;">Failed to load</li>';
+        }
+    }
+
+    function renderWordList(words) {
+        const ul = document.getElementById('wordList');
+        ul.innerHTML = words.length ? '' : '<li style="padding:1rem;color:var(--text-dim);font-size:0.8rem;text-align:center;">No results</li>';
+        words.forEach(w => {
+            const li = document.createElement('li');
+            li.className = 'word-item' + (w === currentWord ? ' active' : '');
+            li.textContent = w; li.id = 'wi-' + w;
+            li.onclick = () => loadWord(w);
+            ul.appendChild(li);
+        });
+    }
+
+    function filterWords() {
+        const q = document.getElementById('searchInput').value.trim().toLowerCase();
+        renderWordList(q ? allWords.filter(w => w.toLowerCase().includes(q)) : allWords);
+    }
+
+    /* ─── Load word ──────────────────────────────────── */
+    async function loadWord(word) {
+        if (word === currentWord) return;
+        currentWord = word;
+        setStep(2);
+        setStatus(`Viewing: ${word}`, 'active');
+
+        document.querySelectorAll('.word-item').forEach(el => el.classList.remove('active'));
+        const li = document.getElementById('wi-' + word);
+        if (li) { li.classList.add('active'); li.scrollIntoView({behavior:'smooth', block:'nearest'}); }
+
+        document.getElementById('welcomeState').style.display = 'none';
+        const ws = document.getElementById('wordState');
+        ws.style.display = 'block'; ws.style.animation = 'none';
+        void ws.offsetHeight; ws.style.animation = 'fadeUp 0.35s ease';
+        document.getElementById('wordTitle').textContent = word;
+        document.getElementById('sensesList').innerHTML = '<span style="color:var(--text-dim);font-size:0.8rem;">Loading…</span>';
+        document.getElementById('pairsList').innerHTML = '<div class="empty-pairs">Loading…</div>';
+        resetCalc();
+
+        try {
+            const res = await fetch(`/api/word/${encodeURIComponent(word)}`);
+            const data = await res.json();
+
+            const sensesEl = document.getElementById('sensesList');
+            sensesEl.innerHTML = data.senses.length
+                ? data.senses.map(s => `<span class="sense-chip">${s}</span>`).join('')
+                : '<span style="color:var(--text-dim);font-size:0.8rem;">No glosses found</span>';
+
+            document.getElementById('wordMetaSenses').textContent =
+                `${data.senses.length} gloss${data.senses.length!==1?'es':''} · ${data.examples.length} pair${data.examples.length!==1?'s':''}`;
+
+            const pairsEl = document.getElementById('pairsList');
+            if (!data.examples.length) {
+                pairsEl.innerHTML = '<div class="empty-pairs">No dataset pairs for this word.</div>';
+            } else {
+                pairsEl.innerHTML = '';
+                data.examples.forEach((ex, i) => {
+                    const isSame = ex.label === '1';
+                    const card = document.createElement('div');
+                    card.className = 'pair-card' + (isSame ? '' : ' diff-sense');
+                    card.innerHTML = `
+                        <span class="pair-badge ${isSame?'same':'diff'}">${isSame?'● Same Sense':'● Diff Sense'}</span>
+                        <div class="pair-sent"><strong>S1</strong>${hl(ex.s1, word)}</div>
+                        <div style="height:4px;"></div>
+                        <div class="pair-sent"><strong>S2</strong>${hl(ex.s2, word)}</div>
+                    `;
+                    card.onclick = () => selectPair(ex.s1, ex.s2, ex.label, card);
+                    pairsEl.appendChild(card);
+                });
+            }
+            setStatus(`Ready: ${word} — select a pair`, 'done');
+        } catch {
+            document.getElementById('sensesList').innerHTML = '<span style="color:var(--red);">Error loading</span>';
+            setStatus('Error loading word data', 'idle');
+        }
+    }
+
+    function hl(sentence, word) {
+        if (!word) return sentence;
+        const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        return sentence.replace(new RegExp(escaped, 'g'), `<span class="hl">${word}</span>`);
+    }
+
+    /* ─── Select pair ────────────────────────────────── */
+    function selectPair(s1, s2, label, cardEl) {
+        currentS1 = s1; currentS2 = s2; currentLabel = label;
+        setStep(3);
+        if (selectedPairEl) selectedPairEl.classList.remove('selected');
+        selectedPairEl = cardEl; cardEl.classList.add('selected');
+
+        const s1El = document.getElementById('calcS1');
+        const s2El = document.getElementById('calcS2');
+        s1El.innerHTML = hl(s1, currentWord); s1El.classList.remove('empty');
+        s2El.innerHTML = hl(s2, currentWord); s2El.classList.remove('empty');
+        document.getElementById('tagS1').style.display = 'inline';
+        document.getElementById('tagS2').style.display = 'inline';
+        document.getElementById('calcBtn').disabled = false;
+        document.getElementById('resultBox').style.display = 'none';
+        document.getElementById('verdictBox').style.display = 'none';
+
+        const labelText = label === '1' ? 'Same Sense' : 'Different Sense';
+        setStatus(`Pair loaded (ground truth: ${labelText}) — ready to compute`, 'done');
+    }
+
+    function resetCalc() {
+        currentS1 = ''; currentS2 = ''; currentLabel = '';
+        selectedPairEl = null;
+        ['calcS1','calcS2'].forEach(id => {
+            const el = document.getElementById(id);
+            el.innerHTML = ''; el.classList.add('empty');
+        });
+        document.getElementById('tagS1').style.display = 'none';
+        document.getElementById('tagS2').style.display = 'none';
+        document.getElementById('calcBtn').disabled = true;
+        document.getElementById('resultBox').style.display = 'none';
+        document.getElementById('verdictBox').style.display = 'none';
+    }
+
+    /* ─── Calculate ──────────────────────────────────── */
+    async function calculateSimilarity() {
+        if (!currentS1 || !currentS2 || !currentWord) return;
+        const model = document.getElementById('modelSelect').value;
+        if (!model) return;
+
+        const btn = document.getElementById('calcBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<div class="spinner"></div> Calculating…';
+        document.getElementById('resultBox').style.display = 'none';
+        document.getElementById('verdictBox').style.display = 'none';
+        setStatus(`Computing with ${model.split('/').pop()}…`, 'active');
+
+        try {
+            const res = await fetch('/api/similarity', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ model_name: model, target_word: currentWord, sentence1: currentS1, sentence2: currentS2 })
+            });
+            const data = await res.json();
+
+            if (data.error) {
+                setStatus('Error: ' + data.error, 'idle');
+                alert('Error: ' + data.error);
+            } else {
+                const sim = data.similarity;
+                const isHigh = sim > 0.7;
+                const pct = Math.min(100, Math.max(0, sim * 100)).toFixed(0);
+
+                // ─── Similarity result card ───
+                const rb = document.getElementById('resultBox');
+                rb.style.display = 'block';
+                rb.innerHTML = `
+                    <div class="result-card ${isHigh ? 'high' : 'low'}">
+                        <div class="result-label">Cosine Similarity</div>
+                        <div class="result-score ${isHigh ? 'high' : 'low'}">${sim.toFixed(4)}</div>
+                        <div class="result-bar-wrap">
+                            <div class="result-bar ${isHigh ? 'high' : 'low'}" id="resultBar" style="width:0%"></div>
+                        </div>
+                    </div>
+                `;
+                setTimeout(() => { const b = document.getElementById('resultBar'); if(b) b.style.width = pct + '%'; }, 50);
+
+                // ─── WSD Verdict card ───
+                const THRESHOLD = 0.7;
+                const modelPredictsSame = sim >= THRESHOLD;
+                const groundTruthSame = currentLabel === '1';
+                const wsdCorrect = (modelPredictsSame === groundTruthSame);
+
+                const vb = document.getElementById('verdictBox');
+                vb.style.display = 'block';
+                vb.innerHTML = `
+                    <div class="verdict-card ${wsdCorrect ? 'correct' : 'wrong'}">
+                        <div class="verdict-header">
+                            <span class="verdict-icon">${wsdCorrect ? '✓' : '✗'}</span>
+                            WSD Prediction: ${wsdCorrect ? 'Correct' : 'Incorrect'}
+                        </div>
+                        <div class="verdict-detail">
+                            <span class="vd-label">Model says:</span>
+                            <span class="verdict-tag ${modelPredictsSame ? 'same' : 'diff'}">${modelPredictsSame ? 'Same Sense' : 'Different Sense'}</span>
+                            <span style="margin: 0 0.3rem;">·</span>
+                            <span class="vd-label">Ground truth:</span>
+                            <span class="verdict-tag ${groundTruthSame ? 'same' : 'diff'}">${groundTruthSame ? 'Same Sense' : 'Different Sense'}</span>
+                            <br>
+                            <span class="vd-label">Threshold:</span> ${THRESHOLD}
+                            <span style="margin: 0 0.3rem;">·</span>
+                            <span class="vd-label">Score:</span> ${sim.toFixed(4)}
+                            ${modelPredictsSame
+                                ? ` → score ≥ ${THRESHOLD} → predicted <b>Same Sense</b>`
+                                : ` → score < ${THRESHOLD} → predicted <b>Different Sense</b>`}
+                        </div>
+                    </div>
+                `;
+
+                setStatus(`Done — WSD ${wsdCorrect ? '✓ correct' : '✗ incorrect'} (${sim.toFixed(4)}, ${model.split('/').pop()})`, 'done');
+            }
+        } catch {
+            setStatus('Connection error', 'idle');
+            alert('Connection error. Is the server running?');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg> Calculate Similarity`;
+        }
+    }
+
+    init();
+</script>
+</body>
+</html>
