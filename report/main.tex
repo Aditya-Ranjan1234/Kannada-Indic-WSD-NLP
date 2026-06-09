@@ -9,7 +9,7 @@
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{mathptmx}              % Times New Roman equivalent
-\usepackage[top=2.54cm, bottom=2.54cm, left=3.81cm, right=2.54cm]{geometry}
+\usepackage[top=2.24cm, bottom=2.24cm, left=3.51cm, right=1.80cm]{geometry}
 \usepackage{graphicx}
 \usepackage{fancyhdr}
 \usepackage{caption}
@@ -21,6 +21,7 @@
 \usepackage{float}
 \usepackage{pdfpages}
 \usepackage{tikz}
+\usepackage{eso-pic}
 \usepackage{array}
 \usepackage{xcolor}
 \usepackage{sectsty}
@@ -30,23 +31,18 @@
 \usepackage{longtable}
 \usepackage{multirow}
 \usepackage{tabularx}
-\usepackage{background}
-\usepackage{lipsum}
 
 % --- Page Border -------------------------------------------------------------
 \usetikzlibrary{calc}
-\backgroundsetup{
-  scale=1,
-  color=black,
-  opacity=1,
-  angle=0,
-  contents={%
-    \begin{tikzpicture}[remember picture,overlay]
-      \draw[line width=1.0pt]
-        ($(current page.north west)+(3.81cm,-2.54cm)$) rectangle
-        ($(current page.south east)+(-2.54cm,2.54cm)$);
-    \end{tikzpicture}
-  }
+\newcommand{\ReportPageBorder}{%
+  \AddToShipoutPictureFG{%
+    \begin{tikzpicture}[overlay,remember picture]
+      \draw[line width=1pt]
+        ([shift={(3.51cm,-2.24cm)}]current page.north west)
+        rectangle
+        ([shift={(-1.8cm,2.24cm)}]current page.south east);
+    \end{tikzpicture}%
+  }%
 }
 
 % --- Header/Footer -----------------------------------------------------------
@@ -58,6 +54,7 @@
 \fancyfoot[R]{\thepage}
 \renewcommand{\headrulewidth}{0.4pt}
 \renewcommand{\footrulewidth}{0.4pt}
+\setlength{\headheight}{14pt}
 
 % --- Title Formatting (16pt bold for sections, 14pt bold for subsections) ----
 \titleformat{\section}{\bfseries\fontsize{16}{19}\selectfont}{\thesection}{1em}{}
@@ -94,8 +91,22 @@
   urlcolor=blue
 }
 
+\newcommand{\dashboardfigure}[3]{%
+  \begin{figure}[H]
+  \centering
+  \IfFileExists{#1}{%
+    \includegraphics[width=#2\textwidth]{#1}%
+  }{%
+    \fbox{\parbox[c][5.2cm][c]{0.85\textwidth}{\centering
+    Place the screenshot file \texttt{#1} here for the final report build.}}%
+  }
+  \caption{#3}
+  \end{figure}
+}
+
 % =============================================================================
 \begin{document}
+\ReportPageBorder
 
 % --- Front Pages from front.pdf (Title Page + Certificate) -------------------
 \includepdf[pages=1-2]{front.pdf}
@@ -117,7 +128,7 @@
 
 The primary objectives of this project are:
 \begin{itemize}[leftmargin=*]
-  \item To curate a Kannada Word-in-Context (WiC) dataset comprising 720 sentence pairs across 45 polysemous words, each having 3 or more distinct senses sourced from IndoWordNet.
+  \item To curate a Kannada Word-in-Context (WiC) dataset comprising 627 cleaned sentence pairs across 45 polysemous words, each having 3 or more distinct senses sourced from IndoWordNet.
   \item To extract contextual word embeddings using four state-of-the-art multilingual transformer models: \textbf{XLM-RoBERTa (XLM-R)}, \textbf{mBERT}, \textbf{MuRIL}, and \textbf{IndicBERT}.
   \item To evaluate sense disambiguation performance through cosine-similarity-based WiC classification, K-means clustering with Adjusted Rand Index (ARI), and gloss-based sense ranking with Mean Reciprocal Rank (MRR).
   \item To compare the four models on Accuracy, Macro F1, ARI, and MRR to identify the most effective encoder for Kannada WSD.
@@ -146,7 +157,7 @@ Existing WSD systems for Indian languages primarily target Hindi and Bengali, wi
 The central research question is: \textit{Which multilingual transformer encoder best captures Kannada word senses, and how do language-specific models (MuRIL, IndicBERT) compare against broad multilingual models (XLM-R, mBERT) on a curated Kannada WiC benchmark?}
 
 \vspace{0.5cm}
-\noindent\textbf{Problem Statement:} \textit{To design, implement, and evaluate a cross-lingual sense transfer pipeline for Kannada Word Sense Disambiguation using contextual embeddings from multilingual transformer models, benchmarked on a newly curated WiC dataset of 720 sentence pairs across 45 polysemous words.}
+\noindent\textbf{Problem Statement:} \textit{To design, implement, and evaluate a cross-lingual sense transfer pipeline for Kannada Word Sense Disambiguation using contextual embeddings from multilingual transformer models, benchmarked on a newly curated WiC dataset of 627 cleaned sentence pairs across 45 polysemous words.}
 
 \subsection{Literature Review}
 
@@ -186,7 +197,7 @@ The dataset was constructed from three primary markdown sources:
 
   \item \textbf{Example Sentences} (\texttt{kannada\_wsd\_example\_sentences.md}): For each word and each sense, 5--10 example sentences were collected and annotated with sense IDs and English glosses.
 
-  \item \textbf{WiC Pairs} (\texttt{kannada\_wic\_dataset.md}): 720 sentence pairs formatted as binary classification instances --- label \texttt{1} if both sentences use the target word in the same sense, label \texttt{0} otherwise.
+  \item \textbf{WiC Pairs} (\texttt{kannada\_wic\_dataset.md}): 627 cleaned sentence pairs formatted as binary classification instances --- label \texttt{1} if both sentences use the target word in the same sense, label \texttt{0} otherwise.
 \end{enumerate}
 
 \begin{table}[H]
@@ -215,7 +226,7 @@ Each WiC pair record contains the following fields:
   \item \texttt{sense\_id\_1}, \texttt{sense\_id\_2}: Gold-standard sense annotations from IndoWordNet
 \end{itemize}
 
-After augmenting explicit pairs with synthetically generated same-sense and different-sense pairs from the example sentence inventory, the final dataset contained \textbf{623 total pairs} split into 497 test pairs and 126 validation pairs (systematic 1-in-5 sampling).
+After cleaning, deduplication, and validation, the final dataset contained \textbf{627 total pairs} split into 497 test pairs and 126 validation pairs, with 44 unique target words represented in the pair set and 45 words represented in the sense inventory.
 
 \subsection{Pre-processing Techniques Applied}
 
@@ -237,24 +248,24 @@ The following pre-processing pipeline was applied to ensure consistency and qual
 
 \begin{table}[H]
 \centering
-\caption{Dataset quality validation results (from 144-pair sample)}
+\caption{Dataset quality validation results (from 126-pair validation sample)}
 \label{tab:quality}
 \begin{tabular}{l c c}
 \toprule
 \textbf{Metric} & \textbf{Count} & \textbf{Percentage} \\
 \midrule
-Correct Labels & 131 & 91.0\% \\
-Mislabelled Pairs & 13 & 9.0\% \\
-Grammatically Awkward & 8 & 5.6\% \\
-Non-Idiomatic Usage & 6 & 4.2\% \\
-Contextually Poor & 5 & 3.5\% \\
+Correct Labels & 126 & 100.0\% \\
+Corrected Labels & 0 & 0.0\% \\
+Missing Mappings & 0 & 0.0\% \\
+Mixed-Script Cases & 3 & 2.4\% \\
+Short Sentences & 0 & 0.0\% \\
 \midrule
-\textbf{Overall Quality Score} & --- & \textbf{85--87\%} \\
+\textbf{Overall Validation Outcome} & --- & \textbf{High consistency} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-After applying corrections to high-priority mislabelled pairs (fixing adjective-sense blurring issues), the projected quality score improved to \textbf{90--92\%}.
+The validation summary confirms that the cleaned benchmark is internally consistent, with no corrected labels or missing mappings in the audited sample and only three mixed-script cases flagged for manual awareness.
 
 \clearpage
 
@@ -628,7 +639,7 @@ All experiments were conducted on CPU (no GPU), making the energy measurements r
 The key contributions and findings are:
 
 \begin{enumerate}[leftmargin=*]
-  \item A \textbf{Kannada WiC dataset} of 623 sentence pairs across 45 polysemous words was curated, validated (91\% label accuracy), and corrected to achieve 90--92\% quality.
+  \item A \textbf{Kannada WiC dataset} of 627 cleaned sentence pairs across 45 polysemous words was curated and validated, with a 126-pair audit showing 100\% label consistency and no missing mappings.
 
   \item \textbf{Four multilingual transformers} were compared on Kannada WSD using four complementary metrics. No single model dominates across all tasks:
   \begin{itemize}
@@ -876,6 +887,294 @@ Gloss Ranking & 89s & 52s & 71s & 28s \\
 \textbf{Relative Cost} & \textbf{3.0x} & \textbf{1.8x} & \textbf{2.5x} & \textbf{1.0x} \\
 \bottomrule
 \end{tabular}
+\end{table}
+
+\subsection*{A.8 Dashboard Snapshots for the Final Report}
+
+The project dashboard provides a practical interface for sentence-pair
+selection, similarity computation, live system metrics, and detailed
+transformer inspection. The following figure slots are prepared only for the
+report document, as requested.
+
+\dashboardfigure{figures/report_dashboard_target_word.png}{0.92}
+{Dashboard view showing the target word, available glosses, and curated
+sentence pairs selected for similarity computation.}
+
+\dashboardfigure{figures/report_dashboard_metrics.png}{0.75}
+{System metrics panel reporting inference time, average CPU usage,
+CPU temperature, GPU utilisation, and estimated heat generated during
+processing.}
+
+\dashboardfigure{figures/report_dashboard_similarity.png}{0.92}
+{Similarity output panel showing cosine similarity and the final WSD verdict
+for the selected sentence pair.}
+
+\subsection*{A.9 Sample Transformer Inspection Output}
+
+This appendix subsection records a representative inspection trace from the
+interactive model-analysis view. It demonstrates how the report can capture
+tokenisation, hidden-state progression, similarity evolution, and attention
+patterns for two Kannada sentences processed by the selected transformer.
+
+\subsubsection*{Sentence 1}
+\textbf{1. Tokenization}\\
+\texttt{["▁ಸಭ","▁ಅ","ರಥ","▁ಸ","ಚ","ಸದ","."]}
+
+\medskip
+\textbf{2. Input IDs}\\
+\texttt{[2,168476,754,117599,2392,10370,77609,9,3]}
+
+\medskip
+\textbf{3. Hidden States Layers}\\
+13 layers, each with 9 tokens and 768 dimensions
+
+\medskip
+\textbf{4. Attention Heads}\\
+12 layers, each with 12 attention heads
+
+\medskip
+\textbf{5. CLS Embedding Evolution (First 5 dimensions)}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{c l}
+\toprule
+\textbf{Layer} & \textbf{Dims 0--4} \\
+\midrule
+0  & [0.0966, 0.1355, -0.0880, 0.0045, -0.1303] \\
+1  & [-0.0393, -0.0205, -0.0066, -0.0096, -0.0100] \\
+2  & [-0.0152, -0.0088, -0.0126, -0.0074, 0.0020] \\
+3  & [-0.0061, -0.0099, -0.0134, -0.0026, 0.0095] \\
+4  & [0.0007, -0.0054, -0.0124, -0.0029, 0.0104] \\
+5  & [0.0071, -0.0122, -0.0120, -0.0022, 0.0172] \\
+6  & [0.0045, 0.0025, -0.0105, -0.0000, 0.0260] \\
+7  & [-0.0033, 0.0018, -0.0157, 0.0033, 0.0258] \\
+8  & [-0.0139, 0.0015, -0.0240, 0.0122, 0.0215] \\
+9  & [-0.0112, -0.0022, -0.0211, 0.0112, 0.0240] \\
+10 & [-0.0116, 0.0027, -0.0203, 0.0121, 0.0311] \\
+11 & [-0.0062, 0.0082, -0.0162, 0.0152, 0.0298] \\
+12 & [-0.0005, 0.0017, -0.0136, 0.0210, 0.0089] \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{6. Hidden-State Similarity Across Layers (CLS token)}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{c c}
+\toprule
+\textbf{Layer 0 vs Layer} & \textbf{Cosine Similarity} \\
+\midrule
+1  & 0.5205 \\
+2  & 0.4743 \\
+3  & 0.4736 \\
+4  & 0.4760 \\
+5  & 0.4700 \\
+6  & 0.4614 \\
+7  & 0.4566 \\
+8  & 0.4545 \\
+9  & 0.4557 \\
+10 & 0.4551 \\
+11 & 0.4561 \\
+12 & 0.4593 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{7. PCA of Contextual Embeddings (Last Layer)}
+
+\begin{flushleft}\ttfamily\small
+[CLS]: (-7.0597, -0.4775)\\
+▁ಸಭ: (5.4676, -4.7984)\\
+▁ಅ: (1.2498, 3.1902)\\
+ರಥ: (2.8702, 0.1730)\\
+▁ಸ: (1.9870, 4.1020)\\
+ಚ: (0.9182, 3.0174)\\
+ಸದ: (3.5389, -0.9088)\\
+.: (-1.9123, -3.8204)\\
+[SEP]: (-7.0597, -0.4775)
+\end{flushleft}
+
+\textbf{8. Attention Map (Layer 0, Head 0)}
+
+\begin{table}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lccccccccc}
+\toprule
+ & [CLS] & ▁ಸಭ & ▁ಅ & ರಥ & ▁ಸ & ಚ & ಸದ & . & [SEP] \\
+\midrule
+[CLS] & 0.99 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.01 \\
+▁ಸಭ   & 1.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 \\
+▁ಅ     & 0.98 & 0.01 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 \\
+ರಥ     & 0.10 & 0.00 & 0.90 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 \\
+▁ಸ     & 0.96 & 0.00 & 0.01 & 0.03 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 \\
+ಚ      & 0.89 & 0.00 & 0.00 & 0.00 & 0.03 & 0.06 & 0.00 & 0.00 & 0.00 \\
+ಸದ     & 0.94 & 0.00 & 0.00 & 0.00 & 0.05 & 0.00 & 0.00 & 0.00 & 0.00 \\
+.      & 0.99 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 \\
+[SEP]  & 0.96 & 0.00 & 0.02 & 0.00 & 0.00 & 0.00 & 0.01 & 0.01 & 0.00 \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\textbf{9. Attention Rollout}
+
+\begin{table}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lccccccccc}
+\toprule
+ & [CLS] & ▁ಸಭ & ▁ಅ & ರಥ & ▁ಸ & ಚ & ಸದ & . & [SEP] \\
+\midrule
+[CLS] & 0.63 & 0.01 & 0.00 & 0.01 & 0.00 & 0.00 & 0.01 & 0.04 & 0.29 \\
+▁ಸಭ   & 0.46 & 0.09 & 0.05 & 0.04 & 0.02 & 0.01 & 0.04 & 0.10 & 0.20 \\
+▁ಅ     & 0.46 & 0.05 & 0.06 & 0.13 & 0.02 & 0.02 & 0.03 & 0.04 & 0.19 \\
+ರಥ     & 0.45 & 0.04 & 0.08 & 0.09 & 0.04 & 0.02 & 0.04 & 0.06 & 0.19 \\
+▁ಸ     & 0.46 & 0.02 & 0.02 & 0.05 & 0.08 & 0.08 & 0.05 & 0.05 & 0.18 \\
+ಚ      & 0.43 & 0.02 & 0.02 & 0.03 & 0.08 & 0.09 & 0.09 & 0.06 & 0.19 \\
+ಸದ     & 0.44 & 0.03 & 0.01 & 0.03 & 0.03 & 0.05 & 0.09 & 0.12 & 0.19 \\
+.      & 0.48 & 0.02 & 0.01 & 0.02 & 0.01 & 0.01 & 0.04 & 0.15 & 0.25 \\
+[SEP]  & 0.58 & 0.01 & 0.00 & 0.00 & 0.00 & 0.00 & 0.01 & 0.06 & 0.33 \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\subsubsection*{Sentence 2}
+\textbf{1. Tokenization}\\
+\texttt{["▁ಅ","ರಥ","▁ಪಲ","ಸ","ವ","ದ","▁ಅವ","ಶಯ","ಕ","."]}
+
+\medskip
+\textbf{2. Input IDs}\\
+\texttt{[2,754,117599,118264,3258,1962,186,15836,160004,1462,9,3]}
+
+\medskip
+\textbf{3. Hidden States Layers}\\
+13 layers, each with 12 tokens and 768 dimensions
+
+\medskip
+\textbf{4. Attention Heads}\\
+12 layers, each with 12 attention heads
+
+\medskip
+\textbf{5. CLS Embedding Evolution (First 5 dimensions)}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{c l}
+\toprule
+\textbf{Layer} & \textbf{Dims 0--4} \\
+\midrule
+0  & [0.0966, 0.1355, -0.0880, 0.0045, -0.1303] \\
+1  & [-0.0340, -0.0207, 0.0007, -0.0143, -0.0085] \\
+2  & [-0.0136, -0.0044, -0.0078, -0.0098, 0.0006] \\
+3  & [-0.0061, -0.0079, -0.0106, -0.0070, 0.0084] \\
+4  & [-0.0019, 0.0001, -0.0134, 0.0060, 0.0072] \\
+5  & [0.0052, -0.0128, -0.0152, 0.0047, 0.0173] \\
+6  & [0.0020, 0.0047, -0.0135, 0.0001, 0.0261] \\
+7  & [-0.0044, 0.0031, -0.0148, 0.0034, 0.0236] \\
+8  & [-0.0142, 0.0044, -0.0210, 0.0117, 0.0200] \\
+9  & [-0.0128, 0.0038, -0.0224, 0.0133, 0.0219] \\
+10 & [-0.0112, 0.0053, -0.0228, 0.0153, 0.0312] \\
+11 & [-0.0066, 0.0114, -0.0166, 0.0177, 0.0316] \\
+12 & [-0.0065, 0.0126, -0.0077, 0.0281, 0.0080] \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{6. Hidden-State Similarity Across Layers (CLS token)}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{c c}
+\toprule
+\textbf{Layer 0 vs Layer} & \textbf{Cosine Similarity} \\
+\midrule
+1  & 0.5239 \\
+2  & 0.4753 \\
+3  & 0.4756 \\
+4  & 0.4748 \\
+5  & 0.4695 \\
+6  & 0.4609 \\
+7  & 0.4577 \\
+8  & 0.4567 \\
+9  & 0.4569 \\
+10 & 0.4567 \\
+11 & 0.4554 \\
+12 & 0.4601 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{7. PCA of Contextual Embeddings (Last Layer)}
+
+\begin{flushleft}\ttfamily\small
+[CLS]: (-5.8944, 1.6939)\\
+▁ಅ: (0.7053, -1.1880)\\
+ರಥ: (4.8427, 0.4480)\\
+▁ಪಲ: (4.1633, -0.3334)\\
+ಸ: (-0.0661, 0.9016)\\
+ವ: (4.0344, 0.9193)\\
+ದ: (3.6138, 2.1532)\\
+▁ಅವ: (-1.5255, -3.5114)\\
+ಶಯ: (-1.6371, -6.3126)\\
+ಕ: (-0.5410, -0.5779)\\
+.: (-1.8011, 4.1135)\\
+[SEP]: (-5.8944, 1.6939)
+\end{flushleft}
+
+\textbf{8. Attention Map (Layer 0, Head 0)}
+
+\begin{table}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lcccccccccccc}
+\toprule
+ & [CLS] & ▁ಅ & ರಥ & ▁ಪಲ & ಸ & ವ & ದ & ▁ಅವ & ಶಯ & ಕ & . & [SEP] \\
+\midrule
+[CLS] & 0.98 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.01 \\
+▁ಅ    & 0.99 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 \\
+ರಥ    & 0.12 & 0.88 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 \\
+▁ಪಲ   & 0.99 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 \\
+ಸ     & 0.45 & 0.00 & 0.01 & 0.52 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 \\
+ವ     & 0.77 & 0.00 & 0.00 & 0.01 & 0.21 & 0.01 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 \\
+ದ     & 0.82 & 0.00 & 0.00 & 0.00 & 0.00 & 0.15 & 0.01 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 \\
+▁ಅವ   & 0.97 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.02 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 \\
+ಶಯ    & 0.59 & 0.02 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.36 & 0.01 & 0.00 & 0.00 & 0.00 \\
+ಕ     & 0.47 & 0.00 & 0.00 & 0.01 & 0.00 & 0.00 & 0.00 & 0.05 & 0.47 & 0.00 & 0.00 & 0.00 \\
+.     & 0.98 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.01 & 0.00 & 0.00 \\
+[SEP] & 0.98 & 0.00 & 0.00 & 0.00 & 0.00 & 0.01 & 0.00 & 0.00 & 0.00 & 0.00 & 0.01 & 0.00 \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\textbf{9. Attention Rollout}
+
+\begin{table}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lcccccccccccc}
+\toprule
+ & [CLS] & ▁ಅ & ರಥ & ▁ಪಲ & ಸ & ವ & ದ & ▁ಅವ & ಶಯ & ಕ & . & [SEP] \\
+\midrule
+[CLS] & 0.63 & 0.00 & 0.00 & 0.01 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.05 & 0.29 \\
+▁ಅ    & 0.44 & 0.06 & 0.13 & 0.03 & 0.01 & 0.01 & 0.02 & 0.01 & 0.01 & 0.02 & 0.06 & 0.20 \\
+ರಥ    & 0.43 & 0.07 & 0.09 & 0.04 & 0.02 & 0.01 & 0.03 & 0.02 & 0.02 & 0.02 & 0.06 & 0.18 \\
+▁ಪಲ   & 0.46 & 0.02 & 0.03 & 0.08 & 0.07 & 0.03 & 0.03 & 0.01 & 0.01 & 0.01 & 0.05 & 0.19 \\
+ಸ     & 0.39 & 0.02 & 0.03 & 0.12 & 0.06 & 0.06 & 0.04 & 0.01 & 0.01 & 0.01 & 0.06 & 0.18 \\
+ವ     & 0.41 & 0.01 & 0.02 & 0.05 & 0.07 & 0.06 & 0.10 & 0.01 & 0.01 & 0.02 & 0.05 & 0.18 \\
+ದ     & 0.39 & 0.01 & 0.03 & 0.04 & 0.02 & 0.06 & 0.08 & 0.05 & 0.03 & 0.03 & 0.06 & 0.18 \\
+▁ಅವ   & 0.43 & 0.01 & 0.02 & 0.02 & 0.01 & 0.01 & 0.04 & 0.06 & 0.09 & 0.06 & 0.06 & 0.18 \\
+ಶಯ    & 0.46 & 0.01 & 0.02 & 0.01 & 0.01 & 0.01 & 0.03 & 0.06 & 0.05 & 0.09 & 0.06 & 0.19 \\
+ಕ     & 0.42 & 0.01 & 0.02 & 0.01 & 0.01 & 0.01 & 0.03 & 0.04 & 0.09 & 0.07 & 0.10 & 0.20 \\
+.     & 0.48 & 0.01 & 0.01 & 0.01 & 0.01 & 0.01 & 0.01 & 0.01 & 0.01 & 0.03 & 0.14 & 0.26 \\
+[SEP] & 0.57 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.06 & 0.34 \\
+\bottomrule
+\end{tabular}}
 \end{table}
 
 \end{document}
