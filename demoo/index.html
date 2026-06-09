@@ -6,6 +6,7 @@
     <title>Kannada-Indic WSD Dashboard</title>
     <meta name="description" content="Cross-lingual Gloss Projection dashboard for Kannada Word Sense Disambiguation using multilingual embeddings.">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Kannada:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         :root {
             --bg: #060d1f;
@@ -23,7 +24,7 @@
             --text-sub: #94a3b8;
             --text-dim: #475569;
             --sidebar-w: 220px;
-            --right-w: 380px;
+            --right-w: 500px;
             --header-h: 56px;
             --radius: 12px;
             --radius-sm: 8px;
@@ -90,10 +91,10 @@
 
         /* ─── Layout ─────────────────────────────────────── */
         .layout {
-            flex: 1; display: grid;
-            grid-template-columns: var(--sidebar-w) 1fr var(--right-w);
-            overflow: hidden;
-        }
+        flex: 1; display: grid;
+        grid-template-columns: var(--sidebar-w) 500px 1fr;
+        overflow: hidden;
+    }
 
         /* ─── Sidebar ────────────────────────────────────── */
         .sidebar {
@@ -245,19 +246,19 @@
 
         /* Result card */
         .result-card {
-            border-radius: var(--radius); padding: 1.2rem; text-align: center;
+            border-radius: var(--radius); padding: 1.5rem; text-align: center;
             animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
         .result-card.high { background: rgba(16,185,129,0.06); border: 1px solid rgba(16,185,129,0.2); }
         .result-card.low { background: rgba(244,63,94,0.06); border: 1px solid rgba(244,63,94,0.2); }
         .result-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-sub); margin-bottom: 0.4rem; }
         .result-score {
-            font-size: 2.8rem; font-weight: 700; line-height: 1;
+            font-size: 3.2rem; font-weight: 700; line-height: 1;
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
         .result-score.high { background: linear-gradient(to right, var(--green), #34d399); -webkit-background-clip: text; }
         .result-score.low { background: linear-gradient(to right, var(--red), #fb7185); -webkit-background-clip: text; }
-        .result-bar-wrap { background: rgba(255,255,255,0.06); border-radius: 4px; height: 6px; margin-top: 0.8rem; overflow: hidden; }
+        .result-bar-wrap { background: rgba(255,255,255,0.06); border-radius: 4px; height: 12px; margin-top: 0.8rem; overflow: hidden; }
         .result-bar { height: 100%; border-radius: 4px; transition: width 0.8s cubic-bezier(0.4,0,0.2,1); }
         .result-bar.high { background: linear-gradient(to right, var(--blue), var(--green)); }
         .result-bar.low { background: linear-gradient(to right, var(--amber), var(--red)); }
@@ -287,7 +288,7 @@
         .verdict-tag.same { background: rgba(99,102,241,0.15); color: var(--blue-light); }
         .verdict-tag.diff { background: rgba(244,63,94,0.15); color: #fb7185; }
 
-        /* Current status (replaces log) */
+        /* Current status */
         .current-status {
             padding: 0.7rem 0.9rem; border-radius: var(--radius-sm);
             background: rgba(99,102,241,0.06); border: 1px solid rgba(99,102,241,0.15);
@@ -306,6 +307,62 @@
         .tag { display: inline-block; font-size: 0.65rem; padding: 0.15rem 0.45rem; border-radius: 4px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
         .tag-blue { background: rgba(99,102,241,0.15); color: var(--blue-light); }
         .spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; }
+
+        /* Metrics Grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.8rem;
+        }
+        .metric-item {
+            background: rgba(255,255,255,0.05);
+            padding: 0.8rem;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+        .metric-label {
+            font-size: 0.65rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            margin-bottom: 0.3rem;
+        }
+        .metric-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        .metric-value.blue { color: var(--blue-light); }
+        .metric-value.amber { color: var(--amber); }
+        .metric-value.red { color: var(--red); }
+        .metric-value.green { color: var(--green); }
+
+        /* Chart container */
+        .chart-container {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.8rem;
+            height: 180px;
+        }
+        
+        /* Dropdown button for inspection */
+        .inspection-toggle {
+            width: 100%;
+            padding: 0.8rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-family: inherit;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s;
+        }
+        .inspection-toggle:hover {
+            background: var(--surface-hover);
+        }
 
         @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes popIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
@@ -375,50 +432,66 @@
     </main>
 
     <!-- Right Panel -->
-    <aside class="right-panel">
+    <aside class="right-panel" style="display: flex; flex-direction: column;">
         <div class="rp-head">
             <h3>Embedding Similarity</h3>
             <p>Compare target-word token embeddings and evaluate WSD performance.</p>
         </div>
-        <div class="rp-body">
+        <div class="rp-body" style="overflow-y: auto; display: flex; flex-direction: column;">
 
-            <div>
-                <div class="rp-label">Model</div>
-                <select id="modelSelect" class="rp-select"><option value="">Loading models…</option></select>
-            </div>
+            <div id="comparisonGrid" style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem;">
+                <div class="card" style="padding:1rem; display:flex; flex-direction:column; gap:1rem;">
+                    <div>
+                        <div class="rp-label">Model</div>
+                        <select id="modelSelect" class="rp-select"><option value="">Loading models…</option></select>
+                    </div>
 
-            <div>
-                <div class="rp-label" style="display:flex;align-items:center;gap:0.4rem;">
-                    Sentence 1 <span class="tag tag-blue" id="tagS1" style="display:none;">S1</span>
+                    <div>
+                        <div class="rp-label" style="display:flex;align-items:center;gap:0.4rem;">
+                            Sentence 1 <span class="tag tag-blue" id="tagS1" style="display:none;">S1</span>
+                        </div>
+                        <div class="sent-box empty" id="calcS1"></div>
+                    </div>
+
+                    <div>
+                        <div class="rp-label" style="display:flex;align-items:center;gap:0.4rem;">
+                            Sentence 2 <span class="tag tag-blue" id="tagS2" style="display:none;">S2</span>
+                        </div>
+                        <div class="sent-box empty" id="calcS2"></div>
+                    </div>
+
+                    <button class="calc-btn" id="calcBtn" onclick="calculateSimilarity()" disabled>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
+                        Calculate Similarity
+                    </button>
                 </div>
-                <div class="sent-box empty" id="calcS1"></div>
-            </div>
 
-            <div>
-                <div class="rp-label" style="display:flex;align-items:center;gap:0.4rem;">
-                    Sentence 2 <span class="tag tag-blue" id="tagS2" style="display:none;">S2</span>
+                <div class="card" style="padding:1rem; display:flex; flex-direction:column; gap:1rem;">
+                    <div>
+                        <div class="rp-label">Current Status</div>
+                        <div class="current-status" id="currentStatus">
+                            <div class="status-dot idle"></div>
+                            <span>Select a word to begin</span>
+                        </div>
+                    </div>
+                    <div id="metricsBox" style="display:none;"></div>
                 </div>
-                <div class="sent-box empty" id="calcS2"></div>
             </div>
 
-            <button class="calc-btn" id="calcBtn" onclick="calculateSimilarity()" disabled>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
-                Calculate Similarity
-            </button>
-
-            <!-- Result + WSD Verdict -->
-            <div id="resultBox" style="display:none;"></div>
-            <div id="verdictBox" style="display:none;"></div>
+            <div id="similarityVerdictSection" style="display:flex; flex-direction:column; gap:1rem; margin-top:1rem;">
+                <div id="resultBox" style="display:none;"></div>
+                <div id="verdictBox" style="display:none;"></div>
+            </div>
 
             <hr class="rp-divider">
 
-            <!-- Current status (single line, not a growing log) -->
-            <div>
-                <div class="rp-label">Current Status</div>
-                <div class="current-status" id="currentStatus">
-                    <div class="status-dot idle"></div>
-                    <span>Select a word to begin</span>
-                </div>
+            <!-- Model Inspection (One Column with Toggle) -->
+            <div id="inspectionContainer" style="display: none;">
+                <button id="inspectionToggle" class="inspection-toggle" onclick="toggleInspection()">
+                    <span>Model Inspection</span>
+                    <span id="inspectionArrow">▼</span>
+                </button>
+                <div id="inspectionContent" style="margin-top:1rem;"></div>
             </div>
         </div>
     </aside>
@@ -428,7 +501,23 @@
     let currentWord = '', currentS1 = '', currentS2 = '', currentLabel = '';
     let allWords = [];
     let selectedPairEl = null;
-
+    let inspectionVisible = false;
+    
+    // Toggle inspection content
+    function toggleInspection() {
+        inspectionVisible = !inspectionVisible;
+        const inspectionContent = document.getElementById('inspectionContent');
+        const inspectionArrow = document.getElementById('inspectionArrow');
+        
+        if (inspectionVisible) {
+            inspectionContent.style.display = 'block';
+            inspectionArrow.textContent = '▼';
+        } else {
+            inspectionContent.style.display = 'none';
+            inspectionArrow.textContent = '▶';
+        }
+    }
+    
     /* ─── Workflow steps ─────────────────────────────── */
     function setStep(n) {
         [1,2,3].forEach(i => {
@@ -438,7 +527,7 @@
         });
     }
 
-    /* ─── Single-line status (replaces log) ──────────── */
+    /* ─── Single-line status ─────────────────────────── */
     function setStatus(msg, type = 'active') {
         const el = document.getElementById('currentStatus');
         el.innerHTML = `<div class="status-dot ${type}"></div><span>${msg}</span>`;
@@ -453,6 +542,7 @@
             sel.innerHTML = models.length
                 ? models.map(m => `<option value="${m}">${m}</option>`).join('')
                 : '<option value="">No local models found</option>';
+            sel.addEventListener('change', handleModelChange);
         } catch {}
         try {
             const res = await fetch('/api/words');
@@ -508,8 +598,9 @@
             const data = await res.json();
 
             const sensesEl = document.getElementById('sensesList');
-            sensesEl.innerHTML = data.senses.length
-                ? data.senses.map(s => `<span class="sense-chip">${s}</span>`).join('')
+            const displayedSenses = data.senses.slice(0, Math.ceil(data.senses.length / 2));
+            sensesEl.innerHTML = displayedSenses.length
+                ? displayedSenses.map(s => `<span class="sense-chip">${s}</span>`).join('')
                 : '<span style="color:var(--text-dim);font-size:0.8rem;">No glosses found</span>';
 
             document.getElementById('wordMetaSenses').textContent =
@@ -561,11 +652,38 @@
         document.getElementById('tagS1').style.display = 'inline';
         document.getElementById('tagS2').style.display = 'inline';
         document.getElementById('calcBtn').disabled = false;
-        document.getElementById('resultBox').style.display = 'none';
-        document.getElementById('verdictBox').style.display = 'none';
+        clearComputedOutputs();
 
         const labelText = label === '1' ? 'Same Sense' : 'Different Sense';
         setStatus(`Pair loaded (ground truth: ${labelText}) — ready to compute`, 'done');
+    }
+
+    function clearComputedOutputs() {
+        document.getElementById('resultBox').style.display = 'none';
+        document.getElementById('resultBox').innerHTML = '';
+        document.getElementById('verdictBox').style.display = 'none';
+        document.getElementById('verdictBox').innerHTML = '';
+        document.getElementById('metricsBox').style.display = 'none';
+        document.getElementById('metricsBox').innerHTML = '';
+
+        const inspectionContainer = document.getElementById('inspectionContainer');
+        const inspectionContent = document.getElementById('inspectionContent');
+        inspectionContainer.style.display = 'none';
+        inspectionContent.innerHTML = '';
+        inspectionVisible = false;
+        document.getElementById('inspectionArrow').textContent = '▶';
+    }
+
+    function handleModelChange() {
+        clearComputedOutputs();
+        if (currentS1 && currentS2 && currentWord) {
+            setStatus(`Pair loaded — ready to compute with ${document.getElementById('modelSelect').value}`, 'done');
+            document.getElementById('calcBtn').disabled = false;
+        } else if (currentWord) {
+            setStatus(`Viewing: ${currentWord}`, 'active');
+        } else {
+            setStatus('Select a word to begin', 'idle');
+        }
     }
 
     function resetCalc() {
@@ -578,8 +696,7 @@
         document.getElementById('tagS1').style.display = 'none';
         document.getElementById('tagS2').style.display = 'none';
         document.getElementById('calcBtn').disabled = true;
-        document.getElementById('resultBox').style.display = 'none';
-        document.getElementById('verdictBox').style.display = 'none';
+        clearComputedOutputs();
     }
 
     /* ─── Calculate ──────────────────────────────────── */
@@ -591,8 +708,7 @@
         const btn = document.getElementById('calcBtn');
         btn.disabled = true;
         btn.innerHTML = '<div class="spinner"></div> Calculating…';
-        document.getElementById('resultBox').style.display = 'none';
-        document.getElementById('verdictBox').style.display = 'none';
+        
         setStatus(`Computing with ${model.split('/').pop()}…`, 'active');
 
         try {
@@ -656,6 +772,275 @@
                     </div>
                 `;
 
+                // ─── Metrics card ───
+                const mb = document.getElementById('metricsBox');
+                mb.style.display = 'block';
+                
+                let tempDisplay = 'Not available';
+                if (data.final_temp !== undefined && data.final_temp !== null) {
+                    tempDisplay = `${data.final_temp}°C`;
+                }
+                
+                let gpuDisplay = 'Not available';
+                if (data.gpu_available) {
+                    gpuDisplay = data.gpu_util !== undefined ? `${data.gpu_util}%` : 'Available';
+                }
+                
+                let gpuMemDisplay = '';
+                if (data.gpu_available && data.gpu_mem_used !== undefined && data.gpu_mem_total !== undefined) {
+                    gpuMemDisplay = ` (${data.gpu_mem_used}/${data.gpu_mem_total} GB)`;
+                }
+                
+                let heatDisplay = 'Estimating...';
+                if (data.heat_estimated !== undefined) {
+                    heatDisplay = `${data.heat_estimated} J`;
+                }
+                
+                mb.innerHTML = `
+                    <div class="card" style="padding:1rem;">
+                        <div class="section-label">System Metrics</div>
+                        <div class="metrics-grid" style="margin-top:0.5rem; grid-template-columns: repeat(2, 1fr); gap:0.8rem;">
+                            <div class="metric-item">
+                                <div class="metric-label">Inference Time</div>
+                                <div class="metric-value blue">${data.inference_time}s</div>
+                            </div>
+                            <div class="metric-item">
+                                <div class="metric-label">Avg CPU Usage</div>
+                                <div class="metric-value amber">${data.avg_cpu_usage.toFixed(1)}%</div>
+                            </div>
+                            <div class="metric-item">
+                                <div class="metric-label">CPU Temperature</div>
+                                <div class="metric-value red">${tempDisplay}</div>
+                            </div>
+                            <div class="metric-item">
+                                <div class="metric-label">GPU Usage</div>
+                                <div class="metric-value green">${gpuDisplay}${gpuMemDisplay}</div>
+                            </div>
+                            <div class="metric-item" style="grid-column: span 2;">
+                                <div class="metric-label">Heat Generated (Estimated)</div>
+                                <div class="metric-value" style="color: #f97316;">${heatDisplay}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // ─── Model Inspection ───
+                try {
+                    setStatus(`Inspecting model for sentence 1…`, 'active');
+                    const inspectRes1 = await fetch('/api/inspect', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ model_name: model, text: currentS1 })
+                    });
+                    const inspectData1 = await inspectRes1.json();
+                    
+                    setStatus(`Inspecting model for sentence 2…`, 'active');
+                    const inspectRes2 = await fetch('/api/inspect', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ model_name: model, text: currentS2 })
+                    });
+                    const inspectData2 = await inspectRes2.json();
+                    
+                    // Function to generate inspection HTML for a single sentence
+                    function generateInspectionHTML(name, data) {
+                        let html = `
+                            <div class="card" style="padding:1rem; margin-bottom:1rem;">
+                                <div class="section-label" style="margin-bottom:1rem;">${name}</div>
+                            
+                                <!-- Tokenization -->
+                                <div style="margin-top:1rem;">
+                                    <div class="metric-label" style="margin-bottom:0.5rem;">1. Tokenization</div>
+                                    <div style="font-family:monospace; font-size:0.8rem; color:var(--text-sub); background:rgba(255,255,255,0.05); padding:0.5rem; border-radius:4px; overflow-x:auto;">
+                                        ${JSON.stringify(data.tokens)}
+                                    </div>
+                                </div>
+                                
+                                <!-- Input IDs -->
+                                <div style="margin-top:1rem;">
+                                    <div class="metric-label" style="margin-bottom:0.5rem;">2. Input IDs</div>
+                                    <div style="font-family:monospace; font-size:0.8rem; color:var(--text-sub); background:rgba(255,255,255,0.05); padding:0.5rem; border-radius:4px; overflow-x:auto;">
+                                        ${JSON.stringify(data.input_ids)}
+                                    </div>
+                                </div>
+                                
+                                <!-- Hidden States Layers Info -->
+                                <div style="margin-top:1rem;">
+                                    <div class="metric-label" style="margin-bottom:0.5rem;">3. Hidden States Layers</div>
+                                    <div style="font-size:0.8rem; color:var(--text-sub);">
+                                        ${data.hidden_states.length} layers, each with ${data.hidden_states[0].length} tokens and ${data.hidden_states[0][0].length} dimensions
+                                    </div>
+                                </div>
+                                
+                                <!-- Attention Heads Info -->
+                                <div style="margin-top:1rem;">
+                                    <div class="metric-label" style="margin-bottom:0.5rem;">4. Attention Heads</div>
+                                    <div style="font-size:0.8rem; color:var(--text-sub);">
+                                        ${data.attentions.length} layers, each with ${data.attentions[0].length} attention heads
+                                    </div>
+                                </div>
+                                
+                                <!-- CLS Embedding Evolution -->
+                                <div style="margin-top:1rem;">
+                                    <div class="metric-label" style="margin-bottom:0.5rem;">5. CLS Embedding Evolution (First 5 dimensions)</div>
+                                    <div style="font-family:monospace; font-size:0.7rem; color:var(--text-sub); background:rgba(255,255,255,0.05); padding:0.5rem; border-radius:4px; overflow-x:auto;">
+                                        <table style="width:100%; border-collapse: collapse;">
+                                            <tr>
+                                                <th style="text-align:left; padding:0.3rem; border-bottom:1px solid var(--border);">Layer</th>
+                                                <th style="text-align:left; padding:0.3rem; border-bottom:1px solid var(--border);">Dims 0-4</th>
+                                            </tr>
+                                            ${data.hidden_states.map((layer, idx) => `
+                                                <tr>
+                                                    <td style="padding:0.3rem;">${idx}</td>
+                                                    <td style="padding:0.3rem;">[${layer[0].slice(0,5).map(x => x.toFixed(4)).join(', ')}]</td>
+                                                </tr>
+                                            `).join('')}
+                                        </table>
+                                    </div>
+                                </div>
+                                
+                                <!-- Hidden-State Similarity Across Layers (CLS token) -->
+                                <div style="margin-top:1rem;">
+                                    <div class="metric-label" style="margin-bottom:0.5rem;">6. Hidden-State Similarity Across Layers (CLS token)</div>
+                                    <div style="font-family:monospace; font-size:0.7rem; color:var(--text-sub); background:rgba(255,255,255,0.05); padding:0.5rem; border-radius:4px; overflow-x:auto;">
+                                        <table style="width:100%; border-collapse: collapse;">
+                                            <tr>
+                                                <th style="text-align:left; padding:0.3rem; border-bottom:1px solid var(--border);">Layer 0 vs Layer</th>
+                                                <th style="text-align:left; padding:0.3rem; border-bottom:1px solid var(--border);">Cosine Similarity</th>
+                                            </tr>
+                                            ${data.hidden_states.slice(1).map((layer, idx) => {
+                                                // Simple cosine similarity
+                                                const vecA = data.hidden_states[0][0];
+                                                const vecB = layer[0];
+                                                let dot = 0, normA = 0, normB = 0;
+                                                for (let i = 0; i < vecA.length; i++) {
+                                                    dot += vecA[i] * vecB[i];
+                                                    normA += vecA[i] * vecA[i];
+                                                    normB += vecB[i] * vecB[i];
+                                                }
+                                                const sim = dot / (Math.sqrt(normA) * Math.sqrt(normB));
+                                                return `
+                                                    <tr>
+                                                        <td style="padding:0.3rem;">${idx + 1}</td>
+                                                        <td style="padding:0.3rem;">${sim.toFixed(4)}</td>
+                                                    </tr>
+                                                `;
+                                            }).join('')}
+                                        </table>
+                                    </div>
+                                </div>
+                                
+                                <!-- PCA of Contextual Embeddings -->
+                                <div style="margin-top:1rem;">
+                                    <div class="metric-label" style="margin-bottom:0.5rem;">7. PCA of Contextual Embeddings (Last Layer)</div>
+                                    <div style="font-family:monospace; font-size:0.8rem; color:var(--text-sub); background:rgba(255,255,255,0.05); padding:0.5rem; border-radius:4px; overflow-x:auto;">
+                                        ${(() => {
+                                            const projected = data.pca_2d || [];
+                                            return data.token_ids.map((token, i) => `
+                                                <div style="margin-bottom:0.3rem;">
+                                                    <strong>${token}:</strong> (${(projected[i]?.[0] ?? 0).toFixed(4)}, ${(projected[i]?.[1] ?? 0).toFixed(4)})
+                                                </div>
+                                            `).join('');
+                                        })()}
+                                    </div>
+                                </div>
+                                
+                                <!-- Attention Map (First Layer, First Head) -->
+                                <div style="margin-top:1rem;">
+                                    <div class="metric-label" style="margin-bottom:0.5rem;">8. Attention Map (Layer 0, Head 0)</div>
+                                    <div style="background:rgba(255,255,255,0.05); padding:0.5rem; border-radius:4px; overflow-x:auto;">
+                                        <table style="border-collapse: collapse; font-size:0.65rem;">
+                                            <tr>
+                                                <th style="padding:0.2rem; border:1px solid var(--border);"></th>
+                                                ${data.token_ids.map(t => `<th style="padding:0.2rem; border:1px solid var(--border); color:var(--text-sub);">${t}</th>`).join('')}
+                                            </tr>
+                                            ${data.token_ids.map((tokenFrom, i) => `
+                                                <tr>
+                                                    <td style="padding:0.2rem; border:1px solid var(--border); color:var(--text-sub); font-weight:bold;">${tokenFrom}</td>
+                                                    ${data.token_ids.map((tokenTo, j) => {
+                                                        const val = data.attentions[0][0][i][j];
+                                                        // Map to color
+                                                        const color = `rgba(99, 102, 241, ${val})`;
+                                                        return `<td style="padding:0.2rem; border:1px solid var(--border); background-color:${color}; color:${val > 0.5 ? 'white' : 'var(--text-sub)'};">${val.toFixed(2)}</td>`;
+                                                    }).join('')}
+                                                </tr>
+                                            `).join('')}
+                                        </table>
+                                    </div>
+                                </div>
+                                
+                                <!-- Attention Rollout -->
+                                <div style="margin-top:1rem;">
+                                    <div class="metric-label" style="margin-bottom:0.5rem;">9. Attention Rollout</div>
+                                    <div style="background:rgba(255,255,255,0.05); padding:0.5rem; border-radius:4px; overflow-x:auto;">
+                                        <table style="border-collapse: collapse; font-size:0.65rem;">
+                                            <tr>
+                                                <th style="padding:0.2rem; border:1px solid var(--border);"></th>
+                                                ${data.token_ids.map(t => `<th style="padding:0.2rem; border:1px solid var(--border); color:var(--text-sub);">${t}</th>`).join('')}
+                                            </tr>
+                                            ${(() => {
+                                                // Simple attention rollout: average all heads in all layers
+                                                const seqLen = data.token_ids.length;
+                                                let rollout = new Array(seqLen).fill(0).map(() => new Array(seqLen).fill(0));
+                                                
+                                                for (let layer = 0; layer < data.attentions.length; layer++) {
+                                                    const layerAttn = data.attentions[layer];
+                                                    for (let head = 0; head < layerAttn.length; head++) {
+                                                        for (let i = 0; i < seqLen; i++) {
+                                                            for (let j = 0; j < seqLen; j++) {
+                                                                rollout[i][j] += layerAttn[head][i][j];
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                                
+                                                // Normalize
+                                                const total = data.attentions.length * data.attentions[0].length;
+                                                for (let i = 0; i < seqLen; i++) {
+                                                    for (let j = 0; j < seqLen; j++) {
+                                                        rollout[i][j] /= total;
+                                                    }
+                                                }
+                                                
+                                                return data.token_ids.map((tokenFrom, i) => `
+                                                    <tr>
+                                                        <td style="padding:0.2rem; border:1px solid var(--border); color:var(--text-sub); font-weight:bold;">${tokenFrom}</td>
+                                                        ${data.token_ids.map((tokenTo, j) => {
+                                                            const val = rollout[i][j];
+                                                            const color = `rgba(16, 185, 129, ${val})`;
+                                                            return `<td style="padding:0.2rem; border:1px solid var(--border); background-color:${color}; color:${val > 0.5 ? 'white' : 'var(--text-sub)'};">${val.toFixed(2)}</td>`;
+                                                        }).join('')}
+                                                    </tr>
+                                                `).join('');
+                                            })()}
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        return html;
+                    }
+                    
+                    // Combine both sentences
+                    let inspectionHTML = `
+                        ${generateInspectionHTML('Sentence 1', inspectData1)}
+                        ${generateInspectionHTML('Sentence 2', inspectData2)}
+                    `;
+                    
+                    const inspectionContainer = document.getElementById('inspectionContainer');
+                    const inspectionContent = document.getElementById('inspectionContent');
+                    inspectionContainer.style.display = 'block';
+                    inspectionContent.innerHTML = inspectionHTML;
+                    // Keep it hidden by default
+                    inspectionVisible = false;
+                    document.getElementById('inspectionContent').style.display = 'none';
+                    document.getElementById('inspectionArrow').textContent = '▶';
+                    
+                } catch (err) {
+                    console.error("Inspection error:", err);
+                    alert("Inspection error: " + err.message);
+                }
+                
                 setStatus(`Done — WSD ${wsdCorrect ? '✓ correct' : '✗ incorrect'} (${sim.toFixed(4)}, ${model.split('/').pop()})`, 'done');
             }
         } catch {
