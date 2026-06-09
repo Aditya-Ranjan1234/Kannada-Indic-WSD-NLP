@@ -24,7 +24,6 @@
 \usepackage{eso-pic}
 \usepackage{array}
 \usepackage{xcolor}
-\usepackage{sectsty}
 \usepackage{url}
 \usepackage{listings}
 \usepackage{amsmath}
@@ -165,19 +164,19 @@ Word Sense Disambiguation has a long history in computational linguistics, rapid
 
 \subsubsection{Advancements in Multilingual Transformers}
 
-The introduction of transformer models has significantly shifted the landscape of cross-lingual NLP \cite{ref1, ref2}. Early models like mBERT provided a strong foundation, but recent studies emphasize that specialized multilingual models often yield better representations for specific language families \cite{ref3, ref11}. For instance, models such as MuRIL and IndicBERT, which are tailored for Indian languages, have shown superior capabilities in capturing the nuances of highly inflected and agglutinative languages \cite{ref4, ref28}. The use of transliterated data and diverse pretraining corpora has been instrumental in these improvements, making them suitable for complex semantic tasks \cite{ref18, ref25}.
+The introduction of transformer models has significantly shifted the landscape of cross-lingual NLP. Early models like mBERT provided a strong foundation, but recent studies emphasize that specialized multilingual models often yield better representations for specific language families. For instance, models such as MuRIL and IndicBERT, which are tailored for Indian languages, have shown superior capabilities in capturing the nuances of highly inflected and agglutinative languages. The use of transliterated data and diverse pretraining corpora has been instrumental in these improvements, making them suitable for complex semantic tasks.
 
 \subsubsection{Cross-Lingual Transfer and Low-Resource WSD}
 
-Cross-lingual transfer remains a vital strategy for addressing the data scarcity in low-resource settings \cite{ref8, ref15}. Recent works highlight the efficacy of zero-shot and few-shot methodologies in transferring WSD knowledge from high-resource languages to Indic languages \cite{ref7, ref19}. Researchers have demonstrated that cross-lingual embeddings can effectively cluster word senses even without explicit supervision \cite{ref21}, while gloss-based ranking methods have benefited from advanced sentence transformers and contrastive learning techniques \cite{ref9, ref22, ref27}. Nevertheless, subword fragmentation in tokenization continues to pose a challenge for morphologically rich languages like Kannada, prompting investigations into target-word pooling mechanisms \cite{ref6, ref10, ref16}.
+Cross-lingual transfer remains a vital strategy for addressing the data scarcity in low-resource settings. Recent works highlight the efficacy of zero-shot and few-shot methodologies in transferring WSD knowledge from high-resource languages to Indic languages. Researchers have demonstrated that cross-lingual embeddings can effectively cluster word senses even without explicit supervision, while gloss-based ranking methods have benefited from advanced sentence transformers and contrastive learning techniques. Nevertheless, subword fragmentation in tokenization continues to pose a challenge for morphologically rich languages like Kannada, prompting investigations into target-word pooling mechanisms.
 
 \subsubsection{Lexical Resources and Benchmarking}
 
-The development of high-quality lexical resources is crucial for reliable WSD evaluation \cite{ref13}. Recent benchmarking efforts have focused on creating Word-in-Context (WiC) datasets specifically designed for Indic languages \cite{ref14, ref29}. These benchmarks highlight the necessity of carefully curated data to mitigate annotation bias and ensure valid performance assessments \cite{ref17, ref20}. Moreover, semantic relation extraction and improved IndoWordNet mappings have provided better grounding for gloss-based approaches \cite{ref24, ref26}.
+The development of high-quality lexical resources is crucial for reliable WSD evaluation. Recent benchmarking efforts have focused on creating Word-in-Context (WiC) datasets specifically designed for Indic languages. These benchmarks highlight the necessity of carefully curated data to mitigate annotation bias and ensure valid performance assessments. Moreover, semantic relation extraction and improved IndoWordNet mappings have provided better grounding for gloss-based approaches.
 
 \subsubsection{Energy-Aware NLP (Green AI)}
 
-As NLP models grow in size, their computational and environmental costs have come under increased scrutiny \cite{ref12, ref23}. The shift towards ``Green AI'' emphasizes the need for energy-efficient deployment, particularly in academic and resource-constrained environments \cite{ref5, ref30}. This growing paradigm advocates for optimizing inference speed and reducing the carbon footprint without significantly sacrificing semantic performance, an approach closely aligned with the objectives of this study.
+As NLP models grow in size, their computational and environmental costs have come under increased scrutiny. The shift towards ``Green AI'' emphasizes the need for energy-efficient deployment, particularly in academic and resource-constrained environments. This growing paradigm advocates for optimizing inference speed and reducing the carbon footprint without significantly sacrificing semantic performance, an approach closely aligned with the objectives of this study.
 
 \clearpage
 
@@ -774,50 +773,50 @@ M. Chandra, ``Towards Green AI in Indian Academia: A 2024 Perspective,'' \emph{S
 \label{fig:app_comparison}
 \end{figure}
 
-\subsection*{A.2 Clustering ARI Distribution}
+\subsection*{A.2 ARI Distribution (Cluster Quality)}
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.9\textwidth]{figures/cluster_ari.png}
-\caption{Appendix: Box plot of Adjusted Rand Index (ARI) scores per model across all target words}
+\caption{Appendix: ARI distribution across target words for each model}
 \label{fig:app_ari}
 \end{figure}
 
-\subsection*{A.3 Gloss-Based MRR Comparison}
+\subsection*{A.3 Gloss MRR Comparison}
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.9\textwidth]{figures/gloss_mrr.png}
-\caption{Appendix: Mean Reciprocal Rank (MRR) for gloss-based sense ranking across all four models}
+\caption{Appendix: Gloss MRR scores by model}
 \label{fig:app_mrr}
 \end{figure}
 
-\subsection*{A.4 t-SNE Embeddings for ``kaala'' -- All Models}
+\subsection*{A.4 t-SNE Embeddings for ``kaala''}
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.85\textwidth]{figures/tsne_indicbert_kala.png}
+\includegraphics[width=0.75\textwidth]{figures/tsne_indicbert_kala.png}
 \caption{Appendix: t-SNE scatter plot of IndicBERT embeddings for the polysemous word ``kaala'' showing 5 sense clusters}
 \label{fig:app_tsne_indicbert}
 \end{figure}
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.85\textwidth]{figures/tsne_mbert_kala.png}
+\includegraphics[width=0.75\textwidth]{figures/tsne_mbert_kala.png}
 \caption{Appendix: t-SNE scatter plot of mBERT embeddings for ``kaala''}
 \label{fig:app_tsne_mbert}
 \end{figure}
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.85\textwidth]{figures/tsne_muril_kala.png}
+\includegraphics[width=0.75\textwidth]{figures/tsne_muril_kala.png}
 \caption{Appendix: t-SNE scatter plot of MuRIL embeddings for ``kaala''}
 \label{fig:app_tsne_muril}
 \end{figure}
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.85\textwidth]{figures/tsne_xlmr_kala.png}
+\includegraphics[width=0.75\textwidth]{figures/tsne_xlmr_kala.png}
 \caption{Appendix: t-SNE scatter plot of XLM-R embeddings for ``kaala''}
 \label{fig:app_tsne_xlmr}
 \end{figure}
@@ -833,19 +832,19 @@ M. Chandra, ``Towards Green AI in Indian Academia: A 2024 Perspective,'' \emph{S
 \textbf{Directory} & \textbf{File} & \textbf{Description} \\
 \midrule
 \texttt{data/} & \texttt{clean\_wic\_pairs.csv} & Quality-flagged WiC pairs \\
- & \texttt{sense\_inventory.csv} & 45-word sense inventory \\
- & \texttt{example\_sentence\_inventory.csv} & Annotated example sentences \\
- & \texttt{validation\_sample.csv} & 20\% systematic validation sample \\
+& \texttt{sense\_inventory.csv} & 45-word sense inventory \\
+& \texttt{example\_sentence\_inventory.csv} & Annotated example sentences \\
+& \texttt{validation\_sample.csv} & 20\% systematic validation sample \\
 \midrule
 \texttt{outputs/} & \texttt{*\_sentence\_embeddings.npz} & Per-model embedding matrices \\
- & \texttt{*\_pair\_similarity.csv} & Pair-level cosine similarities \\
- & \texttt{cluster\_assignments.csv} & K-means cluster labels \\
- & \texttt{tsne\_*\_kala.png} & t-SNE visualisations \\
+& \texttt{*\_pair\_similarity.csv} & Pair-level cosine similarities \\
+& \texttt{cluster\_assignments.csv} & K-means cluster labels \\
+& \texttt{tsne\_*\_kala.png} & t-SNE visualisations \\
 \midrule
 \texttt{results/} & \texttt{model\_comparison.csv} & WiC classification metrics \\
- & \texttt{clustering\_summary.csv} & ARI per word per model \\
- & \texttt{gloss\_metrics.csv} & MRR per model \\
- & \texttt{pair\_level\_predictions.csv} & Full prediction output \\
+& \texttt{clustering\_summary.csv} & ARI per word per model \\
+& \texttt{gloss\_metrics.csv} & MRR per model \\
+& \texttt{pair\_level\_predictions.csv} & Full prediction output \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -896,285 +895,10 @@ selection, similarity computation, live system metrics, and detailed
 transformer inspection. The following figure slots are prepared only for the
 report document, as requested.
 
-\dashboardfigure{figures/report_dashboard_target_word.png}{0.92}
-{Dashboard view showing the target word, available glosses, and curated
-sentence pairs selected for similarity computation.}
+\dashboardfigure{figures/report_dashboard_target_word.png}{0.92}{Dashboard view showing the target word, available glosses, and curated sentence pairs selected for similarity computation.}
 
-\dashboardfigure{figures/report_dashboard_metrics.png}{0.75}
-{System metrics panel reporting inference time, average CPU usage,
-CPU temperature, GPU utilisation, and estimated heat generated during
-processing.}
+\dashboardfigure{figures/report_dashboard_metrics.png}{0.75}{System metrics panel reporting inference time, average CPU usage, CPU temperature, GPU utilisation, and estimated heat generated during processing.}
 
-\dashboardfigure{figures/report_dashboard_similarity.png}{0.92}
-{Similarity output panel showing cosine similarity and the final WSD verdict
-for the selected sentence pair.}
-
-\subsection*{A.9 Sample Transformer Inspection Output}
-
-This appendix subsection records a representative inspection trace from the
-interactive model-analysis view. It demonstrates how the report can capture
-tokenisation, hidden-state progression, similarity evolution, and attention
-patterns for two Kannada sentences processed by the selected transformer.
-
-\subsubsection*{Sentence 1}
-\textbf{1. Tokenization}\\
-\texttt{["▁ಸಭ","▁ಅ","ರಥ","▁ಸ","ಚ","ಸದ","."]}
-
-\medskip
-\textbf{2. Input IDs}\\
-\texttt{[2,168476,754,117599,2392,10370,77609,9,3]}
-
-\medskip
-\textbf{3. Hidden States Layers}\\
-13 layers, each with 9 tokens and 768 dimensions
-
-\medskip
-\textbf{4. Attention Heads}\\
-12 layers, each with 12 attention heads
-
-\medskip
-\textbf{5. CLS Embedding Evolution (First 5 dimensions)}
-
-\begin{table}[H]
-\centering
-\small
-\begin{tabular}{c l}
-\toprule
-\textbf{Layer} & \textbf{Dims 0--4} \\
-\midrule
-0  & [0.0966, 0.1355, -0.0880, 0.0045, -0.1303] \\
-1  & [-0.0393, -0.0205, -0.0066, -0.0096, -0.0100] \\
-2  & [-0.0152, -0.0088, -0.0126, -0.0074, 0.0020] \\
-3  & [-0.0061, -0.0099, -0.0134, -0.0026, 0.0095] \\
-4  & [0.0007, -0.0054, -0.0124, -0.0029, 0.0104] \\
-5  & [0.0071, -0.0122, -0.0120, -0.0022, 0.0172] \\
-6  & [0.0045, 0.0025, -0.0105, -0.0000, 0.0260] \\
-7  & [-0.0033, 0.0018, -0.0157, 0.0033, 0.0258] \\
-8  & [-0.0139, 0.0015, -0.0240, 0.0122, 0.0215] \\
-9  & [-0.0112, -0.0022, -0.0211, 0.0112, 0.0240] \\
-10 & [-0.0116, 0.0027, -0.0203, 0.0121, 0.0311] \\
-11 & [-0.0062, 0.0082, -0.0162, 0.0152, 0.0298] \\
-12 & [-0.0005, 0.0017, -0.0136, 0.0210, 0.0089] \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\textbf{6. Hidden-State Similarity Across Layers (CLS token)}
-
-\begin{table}[H]
-\centering
-\small
-\begin{tabular}{c c}
-\toprule
-\textbf{Layer 0 vs Layer} & \textbf{Cosine Similarity} \\
-\midrule
-1  & 0.5205 \\
-2  & 0.4743 \\
-3  & 0.4736 \\
-4  & 0.4760 \\
-5  & 0.4700 \\
-6  & 0.4614 \\
-7  & 0.4566 \\
-8  & 0.4545 \\
-9  & 0.4557 \\
-10 & 0.4551 \\
-11 & 0.4561 \\
-12 & 0.4593 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\textbf{7. PCA of Contextual Embeddings (Last Layer)}
-
-\begin{flushleft}\ttfamily\small
-[CLS]: (-7.0597, -0.4775)\\
-▁ಸಭ: (5.4676, -4.7984)\\
-▁ಅ: (1.2498, 3.1902)\\
-ರಥ: (2.8702, 0.1730)\\
-▁ಸ: (1.9870, 4.1020)\\
-ಚ: (0.9182, 3.0174)\\
-ಸದ: (3.5389, -0.9088)\\
-.: (-1.9123, -3.8204)\\
-[SEP]: (-7.0597, -0.4775)
-\end{flushleft}
-
-\textbf{8. Attention Map (Layer 0, Head 0)}
-
-\begin{table}[H]
-\centering
-\resizebox{\textwidth}{!}{%
-\begin{tabular}{lccccccccc}
-\toprule
- & [CLS] & ▁ಸಭ & ▁ಅ & ರಥ & ▁ಸ & ಚ & ಸದ & . & [SEP] \\
-\midrule
-[CLS] & 0.99 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.01 \\
-▁ಸಭ   & 1.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 \\
-▁ಅ     & 0.98 & 0.01 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 \\
-ರಥ     & 0.10 & 0.00 & 0.90 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 \\
-▁ಸ     & 0.96 & 0.00 & 0.01 & 0.03 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 \\
-ಚ      & 0.89 & 0.00 & 0.00 & 0.00 & 0.03 & 0.06 & 0.00 & 0.00 & 0.00 \\
-ಸದ     & 0.94 & 0.00 & 0.00 & 0.00 & 0.05 & 0.00 & 0.00 & 0.00 & 0.00 \\
-.      & 0.99 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 \\
-[SEP]  & 0.96 & 0.00 & 0.02 & 0.00 & 0.00 & 0.00 & 0.01 & 0.01 & 0.00 \\
-\bottomrule
-\end{tabular}}
-\end{table}
-
-\textbf{9. Attention Rollout}
-
-\begin{table}[H]
-\centering
-\resizebox{\textwidth}{!}{%
-\begin{tabular}{lccccccccc}
-\toprule
- & [CLS] & ▁ಸಭ & ▁ಅ & ರಥ & ▁ಸ & ಚ & ಸದ & . & [SEP] \\
-\midrule
-[CLS] & 0.63 & 0.01 & 0.00 & 0.01 & 0.00 & 0.00 & 0.01 & 0.04 & 0.29 \\
-▁ಸಭ   & 0.46 & 0.09 & 0.05 & 0.04 & 0.02 & 0.01 & 0.04 & 0.10 & 0.20 \\
-▁ಅ     & 0.46 & 0.05 & 0.06 & 0.13 & 0.02 & 0.02 & 0.03 & 0.04 & 0.19 \\
-ರಥ     & 0.45 & 0.04 & 0.08 & 0.09 & 0.04 & 0.02 & 0.04 & 0.06 & 0.19 \\
-▁ಸ     & 0.46 & 0.02 & 0.02 & 0.05 & 0.08 & 0.08 & 0.05 & 0.05 & 0.18 \\
-ಚ      & 0.43 & 0.02 & 0.02 & 0.03 & 0.08 & 0.09 & 0.09 & 0.06 & 0.19 \\
-ಸದ     & 0.44 & 0.03 & 0.01 & 0.03 & 0.03 & 0.05 & 0.09 & 0.12 & 0.19 \\
-.      & 0.48 & 0.02 & 0.01 & 0.02 & 0.01 & 0.01 & 0.04 & 0.15 & 0.25 \\
-[SEP]  & 0.58 & 0.01 & 0.00 & 0.00 & 0.00 & 0.00 & 0.01 & 0.06 & 0.33 \\
-\bottomrule
-\end{tabular}}
-\end{table}
-
-\subsubsection*{Sentence 2}
-\textbf{1. Tokenization}\\
-\texttt{["▁ಅ","ರಥ","▁ಪಲ","ಸ","ವ","ದ","▁ಅವ","ಶಯ","ಕ","."]}
-
-\medskip
-\textbf{2. Input IDs}\\
-\texttt{[2,754,117599,118264,3258,1962,186,15836,160004,1462,9,3]}
-
-\medskip
-\textbf{3. Hidden States Layers}\\
-13 layers, each with 12 tokens and 768 dimensions
-
-\medskip
-\textbf{4. Attention Heads}\\
-12 layers, each with 12 attention heads
-
-\medskip
-\textbf{5. CLS Embedding Evolution (First 5 dimensions)}
-
-\begin{table}[H]
-\centering
-\small
-\begin{tabular}{c l}
-\toprule
-\textbf{Layer} & \textbf{Dims 0--4} \\
-\midrule
-0  & [0.0966, 0.1355, -0.0880, 0.0045, -0.1303] \\
-1  & [-0.0340, -0.0207, 0.0007, -0.0143, -0.0085] \\
-2  & [-0.0136, -0.0044, -0.0078, -0.0098, 0.0006] \\
-3  & [-0.0061, -0.0079, -0.0106, -0.0070, 0.0084] \\
-4  & [-0.0019, 0.0001, -0.0134, 0.0060, 0.0072] \\
-5  & [0.0052, -0.0128, -0.0152, 0.0047, 0.0173] \\
-6  & [0.0020, 0.0047, -0.0135, 0.0001, 0.0261] \\
-7  & [-0.0044, 0.0031, -0.0148, 0.0034, 0.0236] \\
-8  & [-0.0142, 0.0044, -0.0210, 0.0117, 0.0200] \\
-9  & [-0.0128, 0.0038, -0.0224, 0.0133, 0.0219] \\
-10 & [-0.0112, 0.0053, -0.0228, 0.0153, 0.0312] \\
-11 & [-0.0066, 0.0114, -0.0166, 0.0177, 0.0316] \\
-12 & [-0.0065, 0.0126, -0.0077, 0.0281, 0.0080] \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\textbf{6. Hidden-State Similarity Across Layers (CLS token)}
-
-\begin{table}[H]
-\centering
-\small
-\begin{tabular}{c c}
-\toprule
-\textbf{Layer 0 vs Layer} & \textbf{Cosine Similarity} \\
-\midrule
-1  & 0.5239 \\
-2  & 0.4753 \\
-3  & 0.4756 \\
-4  & 0.4748 \\
-5  & 0.4695 \\
-6  & 0.4609 \\
-7  & 0.4577 \\
-8  & 0.4567 \\
-9  & 0.4569 \\
-10 & 0.4567 \\
-11 & 0.4554 \\
-12 & 0.4601 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\textbf{7. PCA of Contextual Embeddings (Last Layer)}
-
-\begin{flushleft}\ttfamily\small
-[CLS]: (-5.8944, 1.6939)\\
-▁ಅ: (0.7053, -1.1880)\\
-ರಥ: (4.8427, 0.4480)\\
-▁ಪಲ: (4.1633, -0.3334)\\
-ಸ: (-0.0661, 0.9016)\\
-ವ: (4.0344, 0.9193)\\
-ದ: (3.6138, 2.1532)\\
-▁ಅವ: (-1.5255, -3.5114)\\
-ಶಯ: (-1.6371, -6.3126)\\
-ಕ: (-0.5410, -0.5779)\\
-.: (-1.8011, 4.1135)\\
-[SEP]: (-5.8944, 1.6939)
-\end{flushleft}
-
-\textbf{8. Attention Map (Layer 0, Head 0)}
-
-\begin{table}[H]
-\centering
-\resizebox{\textwidth}{!}{%
-\begin{tabular}{lcccccccccccc}
-\toprule
- & [CLS] & ▁ಅ & ರಥ & ▁ಪಲ & ಸ & ವ & ದ & ▁ಅವ & ಶಯ & ಕ & . & [SEP] \\
-\midrule
-[CLS] & 0.98 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.01 \\
-▁ಅ    & 0.99 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 \\
-ರಥ    & 0.12 & 0.88 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 \\
-▁ಪಲ   & 0.99 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 \\
-ಸ     & 0.45 & 0.00 & 0.01 & 0.52 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 \\
-ವ     & 0.77 & 0.00 & 0.00 & 0.01 & 0.21 & 0.01 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 \\
-ದ     & 0.82 & 0.00 & 0.00 & 0.00 & 0.00 & 0.15 & 0.01 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 \\
-▁ಅವ   & 0.97 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.02 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 \\
-ಶಯ    & 0.59 & 0.02 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.36 & 0.01 & 0.00 & 0.00 & 0.00 \\
-ಕ     & 0.47 & 0.00 & 0.00 & 0.01 & 0.00 & 0.00 & 0.00 & 0.05 & 0.47 & 0.00 & 0.00 & 0.00 \\
-.     & 0.98 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.01 & 0.00 & 0.00 \\
-[SEP] & 0.98 & 0.00 & 0.00 & 0.00 & 0.00 & 0.01 & 0.00 & 0.00 & 0.00 & 0.00 & 0.01 & 0.00 \\
-\bottomrule
-\end{tabular}}
-\end{table}
-
-\textbf{9. Attention Rollout}
-
-\begin{table}[H]
-\centering
-\resizebox{\textwidth}{!}{%
-\begin{tabular}{lcccccccccccc}
-\toprule
- & [CLS] & ▁ಅ & ರಥ & ▁ಪಲ & ಸ & ವ & ದ & ▁ಅವ & ಶಯ & ಕ & . & [SEP] \\
-\midrule
-[CLS] & 0.63 & 0.00 & 0.00 & 0.01 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.05 & 0.29 \\
-▁ಅ    & 0.44 & 0.06 & 0.13 & 0.03 & 0.01 & 0.01 & 0.02 & 0.01 & 0.01 & 0.02 & 0.06 & 0.20 \\
-ರಥ    & 0.43 & 0.07 & 0.09 & 0.04 & 0.02 & 0.01 & 0.03 & 0.02 & 0.02 & 0.02 & 0.06 & 0.18 \\
-▁ಪಲ   & 0.46 & 0.02 & 0.03 & 0.08 & 0.07 & 0.03 & 0.03 & 0.01 & 0.01 & 0.01 & 0.05 & 0.19 \\
-ಸ     & 0.39 & 0.02 & 0.03 & 0.12 & 0.06 & 0.06 & 0.04 & 0.01 & 0.01 & 0.01 & 0.06 & 0.18 \\
-ವ     & 0.41 & 0.01 & 0.02 & 0.05 & 0.07 & 0.06 & 0.10 & 0.01 & 0.01 & 0.02 & 0.05 & 0.18 \\
-ದ     & 0.39 & 0.01 & 0.03 & 0.04 & 0.02 & 0.06 & 0.08 & 0.05 & 0.03 & 0.03 & 0.06 & 0.18 \\
-▁ಅವ   & 0.43 & 0.01 & 0.02 & 0.02 & 0.01 & 0.01 & 0.04 & 0.06 & 0.09 & 0.06 & 0.06 & 0.18 \\
-ಶಯ    & 0.46 & 0.01 & 0.02 & 0.01 & 0.01 & 0.01 & 0.03 & 0.06 & 0.05 & 0.09 & 0.06 & 0.19 \\
-ಕ     & 0.42 & 0.01 & 0.02 & 0.01 & 0.01 & 0.01 & 0.03 & 0.04 & 0.09 & 0.07 & 0.10 & 0.20 \\
-.     & 0.48 & 0.01 & 0.01 & 0.01 & 0.01 & 0.01 & 0.01 & 0.01 & 0.01 & 0.03 & 0.14 & 0.26 \\
-[SEP] & 0.57 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.06 & 0.34 \\
-\bottomrule
-\end{tabular}}
-\end{table}
+\dashboardfigure{figures/report_dashboard_similarity.png}{0.92}{Similarity output panel showing cosine similarity and the final WSD verdict for the selected sentence pair.}
 
 \end{document}
